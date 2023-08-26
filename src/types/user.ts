@@ -22,7 +22,6 @@ export interface SearchTimeZone {
 export interface Searches {
   items: {
     [id: string]: {
-      name: string;
       region: Region;
     };
   };

@@ -15,7 +15,6 @@ import {
   FirestoreBackedTimeZoneSelect,
 } from "components/utils/forms";
 import { isValidEmail } from "utils/validators";
-import { ADMIN_USERS } from "utils/constants";
 const NotificationsTab: FC<{
   userConfigSnapshot: DocumentSnapshot<ClientConfig>;
 }> = ({ userConfigSnapshot }) => {

@@ -47,13 +47,14 @@ import {
 } from "firebase/firestore";
 import { useKeyPress } from "hooks/events";
 import { Region } from "types/user";
+import { generateMapsUrl } from "utils/maps";
 
 const TrackingIcon: FC<Omit<FontAwesomeIconProps, "icon">> = (props) => (
   <FontAwesomeIcon icon={faChartSimple} {...props} />
 );
 
 type ItemSpec = Searches["items"][string] & {
-  itemId: string;
+  searchId: string;
 };
 
 interface ItemActionOption {
@@ -65,11 +66,11 @@ interface ItemActionOption {
 type ItemProps = ItemSpec & {
   actionButtons: ItemActionOption[];
   selectedItems: string[];
-  toggleItemSelection: (itemId: string) => void;
+  toggleItemSelection: (searchId: string) => void;
 };
 const Item: FC<ItemProps> = ({
-  name,
-  itemId,
+  searchId,
+  region,
   actionButtons,
   selectedItems,
   toggleItemSelection,
@@ -83,28 +84,44 @@ const Item: FC<ItemProps> = ({
   const handleActionMenuClose = () => {
     setActionMenuAnchorEl(null);
   };
+  const strLattitude = region.lattitude.toString();
+  const lattitudeText =
+    strLattitude.slice(0, strLattitude.indexOf(".") + 3) +
+    "°" +
+    (strLattitude.includes("-") ? "S" : "N");
+  const strLongitude = region.longitude.toString();
+  const longitudeText =
+    strLongitude.slice(0, strLongitude.indexOf(".") + 3) +
+    "°" +
+    (strLongitude.includes("-") ? "W" : "E");
+  const googleMapsUrl = generateMapsUrl(strLattitude, strLongitude);
+
   return (
     <TableRow hover>
       <TableCell>
-        <Tooltip title={`Item ${itemId}`}>
-          {(selectedItems.includes(itemId) && (
+        <Tooltip title={`Search ${searchId}`}>
+          {(selectedItems.includes(searchId) && (
             <Chip
               icon={<RestaurantIcon />}
-              label={itemId}
-              onClick={() => toggleItemSelection(itemId)}
+              label={searchId}
+              onClick={() => toggleItemSelection(searchId)}
             />
           )) || (
             <Chip
               icon={<RestaurantIcon />}
-              label={itemId}
+              label={searchId}
               variant="outlined"
-              onClick={() => toggleItemSelection(itemId)}
+              onClick={() => toggleItemSelection(searchId)}
             />
           )}
         </Tooltip>
       </TableCell>
-      <TableCell> Lat/Long </TableCell>
-      <TableCell> Radius </TableCell>
+      <TableCell>
+        <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer">
+          {lattitudeText + ", " + longitudeText}
+        </a>
+      </TableCell>
+      <TableCell> {region.radius + " mi"} </TableCell>
       <TableCell sx={{ textAlign: "right" }}>
         <Button onClick={handleActionMenuClick}>Actions</Button>
         <Menu
@@ -179,9 +196,9 @@ const TableDisplayButtons: FC<{
 };
 
 interface ItemGroupActionButton {
-  doAction: (itemId: string) => void;
+  doAction: (searchId: string) => void;
   ActionIcon: React.ElementType;
-  title: (itemId: string) => string;
+  title: (searchId: string) => string;
 }
 
 const ItemActivityGroup: FC<{
@@ -206,16 +223,16 @@ const ItemActivityGroup: FC<{
     if (selectedItems.length === items.length) {
       setSelectedItems([]);
     } else {
-      setSelectedItems(items.map((item) => item.itemId));
+      setSelectedItems(items.map((item) => item.searchId));
     }
   }, [items, selectedItems]);
 
-  const toggleItemSelection = (itemId: string) => {
+  const toggleItemSelection = (searchId: string) => {
     setSelectedItems((prevSelectedItems) => {
-      if (prevSelectedItems.includes(itemId)) {
-        return prevSelectedItems.filter((id) => id !== itemId);
+      if (prevSelectedItems.includes(searchId)) {
+        return prevSelectedItems.filter((id) => id !== searchId);
       } else {
-        return [...prevSelectedItems, itemId];
+        return [...prevSelectedItems, searchId];
       }
     });
   };
@@ -244,8 +261,8 @@ const ItemActivityGroup: FC<{
                   label="Select All/None"
                 />
               </TableCell>
-              <TableCell></TableCell>
-              <TableCell></TableCell>
+              <TableCell> Lat, Long </TableCell>
+              <TableCell> Radius </TableCell>
               <TableCell sx={{ textAlign: "right" }}>
                 <Button onClick={handleActionMenuClick}>Actions</Button>
                 <Menu
@@ -258,8 +275,8 @@ const ItemActivityGroup: FC<{
                       <MenuItem
                         key={index}
                         onClick={() => {
-                          selectedItems.forEach((itemId) => {
-                            doAction(itemId);
+                          selectedItems.forEach((searchId) => {
+                            doAction(searchId);
                           });
                         }}
                       >
@@ -278,12 +295,12 @@ const ItemActivityGroup: FC<{
           )}
           {displayedItems.map((props) => (
             <Item
-              key={props.itemId}
+              key={props.searchId}
               {...props}
               actionButtons={actionButtons.map(
                 ({ doAction, title, ActionIcon }) => ({
-                  doAction: () => doAction(props.itemId),
-                  title: title(props.itemId),
+                  doAction: () => doAction(props.searchId),
+                  title: title(props.searchId),
                   ActionIcon: ActionIcon,
                 })
               )}
@@ -300,20 +317,74 @@ const ItemActivityGroup: FC<{
   );
 };
 
+const RegionSliders: FC = () => {
+  const [lattitude, setLattitude] = useState(0);
+  const [longitude, setLongitude] = useState(0);
+  const [radius, setRadius] = useState(0);
+
+  const sliderData = [
+    {
+      label: "Lattitude (deg)",
+      value: lattitude,
+      onChange: (newValue: number) => setLattitude(newValue),
+      min: -90,
+      max: 90,
+      step: 0.1,
+    },
+    {
+      label: "Longitude (deg)",
+      value: longitude,
+      onChange: (newValue: number) => setLongitude(newValue),
+      min: -180,
+      max: 180,
+      step: 0.1,
+    },
+    {
+      label: "Radius (mi)",
+      value: radius,
+      onChange: (newValue: number) => setRadius(newValue),
+      min: 0,
+      max: 50,
+      step: 1,
+    },
+  ];
+
+  return (
+    <>
+      {sliderData.map((slider, index) => (
+        <Box key={index}>
+          <Typography gutterBottom>{slider.label}</Typography>
+          <Slider
+            value={slider.value}
+            onChange={(event: Event, newValue: number | number[]) =>
+              slider.onChange(newValue as number)
+            }
+            aria-labelledby="continuous-slider"
+            min={slider.min}
+            max={slider.max}
+            step={slider.step}
+            valueLabelDisplay="auto"
+          />
+        </Box>
+      ))}
+    </>
+  );
+};
+
 interface ItemModalProps {
   open: boolean;
   onClose: () => void;
   createItem: (item: ItemSpec) => Promise<void> | void;
-  existingitemIds: string[];
+  existingsearchIds: string[];
 }
 const NewItemModal: FC<ItemModalProps> = ({
   open,
   onClose,
   createItem,
-  existingitemIds,
+  existingsearchIds,
 }) => {
   const modalRef = useRef<HTMLElement>(null);
-  const [itemId, setitemId] = useState("");
+  const [searchName, setSearchName] = useState("");
   const [lattitude, setLattitude] = useState(0.0);
   const [longitude, setLongitude] = useState(0.0);
   const [radius, setRadius] = useState(0);
@@ -325,17 +396,16 @@ const NewItemModal: FC<ItemModalProps> = ({
     clearError,
   } = useAsyncAction(createItem);
 
-  const validitemId =
-    itemId && !existingitemIds.includes(itemId) && itemId.length === 5;
-  const disabled = creatingItem || !validitemId;
+  const validsearchId = searchName && !existingsearchIds.includes(searchName);
+  const disabled = creatingItem || !validsearchId;
 
   const reset = useCallback(() => {
-    setitemId("");
+    setSearchName("");
     setitemName("");
     setLattitude(0.0);
     setLongitude(0.0);
     setRadius(0);
-  }, [setitemId, setitemName, setLattitude, setLongitude, setRadius]);
+  }, [setSearchName, setitemName, setLattitude, setLongitude, setRadius]);
 
   const doSubmit = useCallback(async () => {
     if (disabled) {
@@ -348,15 +418,14 @@ const NewItemModal: FC<ItemModalProps> = ({
     };
 
     const success = await doCreateItem({
-      itemId,
-      name: itemName,
+      searchId: searchName,
       region: region,
     });
     if (success) {
       reset();
       onClose();
     }
-  }, [onClose, reset, doCreateItem, itemId, itemName, disabled]);
+  }, [onClose, reset, doCreateItem, searchName, itemName, disabled]);
 
   const keyHander = useCallback(
     ({ key }: KeyboardEvent) => {
@@ -396,58 +465,17 @@ const NewItemModal: FC<ItemModalProps> = ({
           }}
         >
           <Typography variant="h5" component="h2" textAlign="center">
-            New Item
+            New Search
           </Typography>
           <TextField
-            label="Item ID"
+            label="Search Name"
             variant="standard"
-            value={itemId}
-            onChange={(e) => setitemId(e.target.value)}
-            error={!validitemId}
-            inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+            value={searchName}
+            onChange={(e) => setSearchName(e.target.value)}
+            error={!validsearchId}
+            inputProps={{ inputMode: "text" }}
           />
-          <Box>
-            <Typography gutterBottom>Lattitude</Typography>
-            <Slider
-              value={lattitude}
-              onChange={(event: Event, newValue: number | number[]) =>
-                setLattitude(newValue as number)
-              }
-              aria-labelledby="continuous-slider"
-              min={-90}
-              max={90}
-              step={0.1}
-              valueLabelDisplay="auto"
-            />
-          </Box>
-          <Box>
-            <Typography gutterBottom>Longitude</Typography>
-            <Slider
-              value={longitude}
-              onChange={(event: Event, newValue: number | number[]) =>
-                setLongitude(newValue as number)
-              }
-              aria-labelledby="continuous-slider"
-              min={-180}
-              max={180}
-              step={0.1}
-              valueLabelDisplay="auto"
-            />
-          </Box>
-          <Box>
-            <Typography gutterBottom>Radius</Typography>
-            <Slider
-              value={radius}
-              onChange={(event: Event, newValue: number | number[]) =>
-                setRadius(newValue as number)
-              }
-              aria-labelledby="continuous-slider"
-              min={0}
-              max={50}
-              step={1}
-              valueLabelDisplay="auto"
-            />
-          </Box>
+          <RegionSliders />
           <Box textAlign="center">
             {creatingItem ? (
               <CircularProgress />
@@ -483,7 +511,7 @@ const ItemsSearchesTab: FC<{
 }> = ({ userConfigSnapshot }) => {
   const searches = userConfigSnapshot?.data()?.searches;
   const [modalOpen, setModalOpen] = useState(false);
-  const existingitemIds = useMemo(
+  const existingsearchIds = useMemo(
     () => Object.keys(searches?.items || {}),
     [searches]
   );
@@ -493,14 +521,14 @@ const ItemsSearchesTab: FC<{
   }
   const searchItems: ItemSpec[] = [];
   Object.entries(searches.items || {}).forEach((t) => {
-    const [itemId, item] = t;
-    searchItems.push({ itemId, ...item });
+    const [searchId, item] = t;
+    searchItems.push({ searchId, ...item });
   });
 
-  const deleteItem = (itemId: string) => {
+  const deleteItem = (searchId: string) => {
     updateDoc(
       userConfigSnapshot.ref,
-      new FieldPath("searches", "items", itemId),
+      new FieldPath("searches", "items", searchId),
       deleteField()
     );
   };
@@ -526,7 +554,7 @@ const ItemsSearchesTab: FC<{
           actionButtons={[
             {
               doAction: deleteItem,
-              title: (itemId: string) => `Delete item ${itemId}`,
+              title: (searchId: string) => `Delete item ${searchId}`,
               ActionIcon: DeleteIcon,
             },
           ]}
@@ -542,12 +570,12 @@ const ItemsSearchesTab: FC<{
       <NewItemModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        existingitemIds={existingitemIds}
+        existingsearchIds={existingsearchIds}
         createItem={(ItemProps) => {
-          const { itemId, ...item } = ItemProps;
+          const { searchId, ...item } = ItemProps;
           updateDoc(
             userConfigSnapshot.ref,
-            new FieldPath("searches", "items", itemId),
+            new FieldPath("searches", "items", searchId),
             item
           );
         }}
