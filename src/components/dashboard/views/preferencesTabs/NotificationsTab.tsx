@@ -26,12 +26,6 @@ const NotificationsTab: FC<{
       <Typography variant="h6" gutterBottom>
         Email
       </Typography>
-      <Typography variant="body1" gutterBottom>
-        {ADMIN_USERS}
-      </Typography>
-      <Typography variant="body1" gutterBottom>
-        Hello
-      </Typography>
       <FormGroup>
         <FirestoreBackedTextField
           label="Email address"
