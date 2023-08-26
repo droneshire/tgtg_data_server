@@ -14,4 +14,4 @@ jobs:
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_TOO_GOOD_TO_GO_DATA_COLLECT }}"
-          projectId: property-guru-rei-scrape
+          projectId: "${{ secrets.REACT_APP_FIREBASE_PROJECT_ID }}"
