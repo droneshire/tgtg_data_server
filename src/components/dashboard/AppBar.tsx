@@ -92,7 +92,7 @@ const AppBar: FC<AppBarProps> = ({
           noWrap
           sx={{ flexGrow: 1 }}
         >
-          Property Guru REI Alert
+          Too Good To Go Monitor
         </Typography>
         <IconButton onClick={toggleUserMenu}>
           <Avatar alt="User Account" src={user.photoURL || ""}>

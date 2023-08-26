@@ -11,34 +11,54 @@ export interface Region {
   radius: number;
 }
 
+export interface SearchTimeZone {
+  abbrev: string;
+  altName: string;
+  label: string;
+  offset: number;
+  value: string;
+}
+
+export interface Searches {
+  items: {
+    [id: string]: {
+      name: string;
+      region: Region;
+    };
+  };
+  sendData: boolean;
+}
 
 export interface Preferences {
   notifications: {
-    sms: {
-      phoneNumber: string;
-      updatesEnabled: boolean;
-    };
     email: {
       email: string;
       updatesEnabled: boolean;
     };
   };
+  searchTimeZone: SearchTimeZone;
 }
 
 export interface ClientConfig {
   preferences: Preferences;
-  regions: Region[];
+  searches: Searches;
 }
 
 export const DEFAULT_USER_CONFIG = {
   preferences: {
     notifications: {
       email: { email: "", updatesEnabled: true },
-      sms: {
-        phoneNumber: "",
-        updatesEnabled: true,
-      },
+    },
+    searchTimeZone: {
+      abbrev: "PDT",
+      altName: "Pacific Daylight Time",
+      label: "(GMT-07:00) Pacific Time",
+      offset: -7,
+      value: "America/Los_Angeles",
     },
   },
-  regions: [],
+  searches: {
+    items: {},
+    sendData: false,
+  },
 }

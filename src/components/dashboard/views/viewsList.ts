@@ -1,11 +1,13 @@
 import React, { useMemo } from "react";
 
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import MapIcon from '@mui/icons-material/Map';
 import SettingsIcon from "@mui/icons-material/Settings";
 import { SvgIconComponent } from "@mui/icons-material";
 
 import AdminView from "./AdminView";
 import PreferencesView from "./PreferencesView";
+import SearchesView from "./SearchesView";
 import { User } from "firebase/auth";
 import { ADMIN_USERS } from "utils/constants";
 
@@ -18,6 +20,13 @@ export interface DashbardViewSpec {
 }
 
 const viewsList: DashbardViewSpec[] = [
+  {
+    key: "searches",
+    label: "Searches",
+    icon: MapIcon,
+    component: SearchesView,
+    adminOnly: false,
+  },
   {
     key: "preferences",
     label: "Preferences",

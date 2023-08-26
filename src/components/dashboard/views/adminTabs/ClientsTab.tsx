@@ -65,7 +65,6 @@ const Client: FC<ClientProps> = ({ userId, actionButtons }) => {
     setActionMenuAnchorEl(null);
   };
 
-
   return (
     <TableRow hover>
       <TableCell>
@@ -329,7 +328,7 @@ const ClientsTab: FC<{
         onClose={() => setModalOpen(false)}
         existinguserIds={existinguserIds}
         createClient={(ClientProps) => {
-          const { userId, } = ClientProps;
+          const { userId } = ClientProps;
           setActionClientId(userId);
           setClientAction(ClientAction.ADD);
         }}

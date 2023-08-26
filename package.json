@@ -16,9 +16,12 @@
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
+    "@fortawesome/free-solid-svg-icons": "^6.4.2",
+    "@fortawesome/react-fontawesome": "^0.2.0",
     "@mui/icons-material": "^5.14.3",
     "@mui/material": "^5.14.5",
     "@mui/x-date-pickers": "^6.11.2",
+    "@mui/x-date-pickers-pro": "^6.12.0",
     "dayjs": "^1.11.9",
     "firebase": "^10.3.0",
     "react-dom": "^18.2.0",
@@ -41,6 +44,7 @@
     ]
   },
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@types/react-dom": "^18.2.7"
   }
 }

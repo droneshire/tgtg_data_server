@@ -12,8 +12,9 @@ import {
   EmailInput,
   FirestoreBackedSwitch,
   FirestoreBackedTextField,
+  FirestoreBackedTimeZoneSelect,
 } from "components/utils/forms";
-import { isValidEmail, isValidPhone } from "utils/validators";
+import { isValidEmail } from "utils/validators";
 
 const NotificationsTab: FC<{
   userConfigSnapshot: DocumentSnapshot<ClientConfig>;
@@ -51,34 +52,11 @@ const NotificationsTab: FC<{
         />
       </FormGroup>
       <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
-      <Typography variant="h6" gutterBottom>
-        Telegram
-      </Typography>
-      <FormGroup>
-        <FirestoreBackedTextField
-          label="Telegram phone number"
-          disabled={updatingAnything}
-          docSnap={userConfigSnapshot!}
-          fieldPath="preferences.notifications.sms.phoneNumber"
-          variant="standard"
-          isValid={(phoneNumber) => !phoneNumber || isValidPhone(phoneNumber)}
-          helperText={(phoneNumber, validPhone) =>
-            validPhone ? "" : "Invalid phone number:" + phoneNumber
-          }
-          sx={{ maxWidth: 300 }}
-        />
-        <FormControlLabel
-          control={
-            <FirestoreBackedSwitch
-              disabled={updatingAnything}
-              docSnap={userConfigSnapshot!}
-              fieldPath="preferences.notifications.sms.updatesEnabled"
-              checkBox
-            />
-          }
-          label="Telegram updates"
-        />
-      </FormGroup>
+      <FirestoreBackedTimeZoneSelect
+        disabled={updatingAnything}
+        docSnap={userConfigSnapshot!}
+        fieldPath="preferences.searchTimeZone"
+      />
     </>
   );
 };
