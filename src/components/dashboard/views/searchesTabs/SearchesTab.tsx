@@ -515,7 +515,7 @@ const ItemsSearchesTab: FC<{
         >
           <TrackingIcon />
           <Typography sx={{ mt: 4, mb: 2 }} variant="h6" component="div">
-            Items Tracked
+            TGTG Searches
           </Typography>
         </Box>
         <ItemActivityGroup
