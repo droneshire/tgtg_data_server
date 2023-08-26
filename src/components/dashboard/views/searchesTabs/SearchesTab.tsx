@@ -344,7 +344,7 @@ const RegionSliders: FC = () => {
       value: radius,
       onChange: (newValue: number) => setRadius(newValue),
       min: 0,
-      max: 50,
+      max: 10,
       step: 1,
     },
   ];
