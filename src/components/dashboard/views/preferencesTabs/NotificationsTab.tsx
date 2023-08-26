@@ -15,15 +15,22 @@ import {
   FirestoreBackedTimeZoneSelect,
 } from "components/utils/forms";
 import { isValidEmail } from "utils/validators";
-
+import { ADMIN_USERS } from "utils/constants";
 const NotificationsTab: FC<{
   userConfigSnapshot: DocumentSnapshot<ClientConfig>;
 }> = ({ userConfigSnapshot }) => {
   const updatingAnything = !!userConfigSnapshot?.metadata.fromCache;
+  console.log(process.env);
   return (
     <>
       <Typography variant="h6" gutterBottom>
         Email
+      </Typography>
+      <Typography variant="body1" gutterBottom>
+        {ADMIN_USERS}
+      </Typography>
+      <Typography variant="body1" gutterBottom>
+        Hello
       </Typography>
       <FormGroup>
         <FirestoreBackedTextField
