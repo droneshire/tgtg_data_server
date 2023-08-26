@@ -407,7 +407,7 @@ const NewItemModal: FC<ItemModalProps> = ({
             inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
           />
           <Box>
-            <Typography gutterBottom>Radius</Typography>
+            <Typography gutterBottom>Lattitude</Typography>
             <Slider
               value={lattitude}
               onChange={(event: Event, newValue: number | number[]) =>
@@ -417,10 +417,11 @@ const NewItemModal: FC<ItemModalProps> = ({
               min={-90}
               max={90}
               step={0.1}
+              valueLabelDisplay="auto"
             />
           </Box>
           <Box>
-            <Typography gutterBottom>Radius</Typography>
+            <Typography gutterBottom>Longitude</Typography>
             <Slider
               value={longitude}
               onChange={(event: Event, newValue: number | number[]) =>
@@ -430,6 +431,7 @@ const NewItemModal: FC<ItemModalProps> = ({
               min={-180}
               max={180}
               step={0.1}
+              valueLabelDisplay="auto"
             />
           </Box>
           <Box>
@@ -443,6 +445,7 @@ const NewItemModal: FC<ItemModalProps> = ({
               min={0}
               max={50}
               step={1}
+              valueLabelDisplay="auto"
             />
           </Box>
           <Box textAlign="center">
