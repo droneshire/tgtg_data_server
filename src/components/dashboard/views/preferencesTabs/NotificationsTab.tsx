@@ -15,6 +15,7 @@ import {
   FirestoreBackedTimeZoneSelect,
 } from "components/utils/forms";
 import { isValidEmail } from "utils/validators";
+import { ADMIN_USERS } from "utils/constants";
 const NotificationsTab: FC<{
   userConfigSnapshot: DocumentSnapshot<ClientConfig>;
 }> = ({ userConfigSnapshot }) => {
@@ -23,6 +24,9 @@ const NotificationsTab: FC<{
     <>
       <Typography variant="h6" gutterBottom>
         Email
+      </Typography>
+      <Typography variant="body2" gutterBottom>
+        {"Admins: " + ADMIN_USERS.join(", ")}
       </Typography>
       <FormGroup>
         <FirestoreBackedTextField

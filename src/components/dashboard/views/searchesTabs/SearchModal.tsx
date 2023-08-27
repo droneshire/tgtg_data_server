@@ -18,7 +18,6 @@ import { useAsyncAction } from "hooks/async";
 import { useKeyPress } from "hooks/events";
 import { Region } from "types/user";
 import { SearchSpec } from "./Search";
-import { is } from "@babel/types";
 
 export interface SliderProps {
   updateRegion: (region: Region) => void;
