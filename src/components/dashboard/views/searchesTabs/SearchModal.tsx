@@ -203,7 +203,6 @@ export const NewSearchModal: FC<SearchModalProps> = ({
           />
           <RegionSliders
             updateRegion={(region) => {
-              console.log(region);
               setLattitude(region.lattitude);
               setLongitude(region.longitude);
               setRadius(region.radius);

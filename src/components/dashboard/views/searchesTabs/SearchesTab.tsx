@@ -114,6 +114,7 @@ const SearchActivityGroup: FC<{
     setActionMenuAnchorEl(event.currentTarget);
   };
   const handleActionMenuClose = () => {
+    console.log("handleActionMenuClose");
     setActionMenuAnchorEl(null);
   };
 
@@ -176,6 +177,7 @@ const SearchActivityGroup: FC<{
                           selectedItems.forEach((searchId) => {
                             doAction(searchId);
                           });
+                          handleActionMenuClose();
                         }}
                       >
                         {ActionIcon && (
@@ -243,6 +245,7 @@ const SearchesTab: FC<{
   };
 
   const emailSearch = (searchId: string) => {
+    console.log("emailSearch", searchId);
     updateDoc(
       userConfigSnapshot.ref,
       new FieldPath("searches", "items", searchId, "sendEmail"),

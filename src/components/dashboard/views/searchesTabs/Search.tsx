@@ -92,7 +92,13 @@ export const Search: FC<SearchProps> = ({
           onClose={handleActionMenuClose}
         >
           {actionButtons.map(({ doAction, ActionIcon, title }, index) => (
-            <MenuItem key={index} onClick={doAction}>
+            <MenuItem
+              key={index}
+              onClick={() => {
+                doAction;
+                handleActionMenuClose();
+              }}
+            >
               {ActionIcon && (
                 <ListItemIcon>
                   <ActionIcon fontSize="small" />

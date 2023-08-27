@@ -19,7 +19,6 @@ const NotificationsTab: FC<{
   userConfigSnapshot: DocumentSnapshot<ClientConfig>;
 }> = ({ userConfigSnapshot }) => {
   const updatingAnything = !!userConfigSnapshot?.metadata.fromCache;
-  console.log(process.env);
   return (
     <>
       <Typography variant="h6" gutterBottom>
