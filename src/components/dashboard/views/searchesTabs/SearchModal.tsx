@@ -1,4 +1,4 @@
-import { FC, useCallback, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 
 import {
   Tooltip,
@@ -18,8 +18,13 @@ import { useAsyncAction } from "hooks/async";
 import { useKeyPress } from "hooks/events";
 import { Region } from "types/user";
 import { SearchSpec } from "./Search";
+import { is } from "@babel/types";
 
-const RegionSliders: FC = () => {
+export interface SliderProps {
+  updateRegion: (region: Region) => void;
+  isUpdating: boolean;
+}
+const RegionSliders: FC<SliderProps> = ({ updateRegion, isUpdating }) => {
   const [lattitude, setLattitude] = useState(0);
   const [longitude, setLongitude] = useState(0);
   const [radius, setRadius] = useState(0);
@@ -51,12 +56,20 @@ const RegionSliders: FC = () => {
     },
   ];
 
+  useEffect(() => {
+    if (isUpdating) {
+      return;
+    }
+    updateRegion({ lattitude, longitude, radius });
+  }, [lattitude, longitude, radius, isUpdating]);
+
   return (
     <>
       {sliderData.map((slider, index) => (
         <Box key={index}>
           <Typography gutterBottom>{slider.label}</Typography>
           <Slider
+            key={slider.label}
             value={slider.value}
             onChange={(event: Event, newValue: number | number[]) =>
               slider.onChange(newValue as number)
@@ -122,12 +135,23 @@ export const NewSearchModal: FC<SearchModalProps> = ({
     const success = await doCreateSearch({
       searchId: searchName,
       region: region,
+      sendEmail: false,
     });
     if (success) {
       reset();
       onClose();
     }
-  }, [onClose, reset, doCreateSearch, searchName, itemName, disabled]);
+  }, [
+    onClose,
+    reset,
+    doCreateSearch,
+    searchName,
+    itemName,
+    disabled,
+    lattitude,
+    longitude,
+    radius,
+  ]);
 
   const keyHander = useCallback(
     ({ key }: KeyboardEvent) => {
@@ -177,7 +201,15 @@ export const NewSearchModal: FC<SearchModalProps> = ({
             error={!validsearchId}
             inputProps={{ inputMode: "text" }}
           />
-          <RegionSliders />
+          <RegionSliders
+            updateRegion={(region) => {
+              console.log(region);
+              setLattitude(region.lattitude);
+              setLongitude(region.longitude);
+              setRadius(region.radius);
+            }}
+            isUpdating={creatingSearch}
+          />
           <Box textAlign="center">
             {creatingSearch ? (
               <CircularProgress />

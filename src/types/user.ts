@@ -23,9 +23,9 @@ export interface Searches {
   items: {
     [id: string]: {
       region: Region;
+      sendEmail: boolean;
     };
   };
-  sendData: boolean;
 }
 
 export interface Preferences {
@@ -58,6 +58,5 @@ export const DEFAULT_USER_CONFIG = {
   },
   searches: {
     items: {},
-    sendData: false,
   },
 }

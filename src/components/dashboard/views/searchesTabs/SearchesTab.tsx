@@ -20,6 +20,7 @@ import {
   Button,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import AttachEmailIcon from "@mui/icons-material/AttachEmail";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { ClientConfig } from "types/user";
 import { Box } from "@mui/system";
@@ -241,6 +242,14 @@ const SearchesTab: FC<{
     );
   };
 
+  const emailSearch = (searchId: string) => {
+    updateDoc(
+      userConfigSnapshot.ref,
+      new FieldPath("searches", "items", searchId, "sendEmail"),
+      true
+    );
+  };
+
   return (
     <>
       <Box alignItems="center">
@@ -262,8 +271,13 @@ const SearchesTab: FC<{
           actionButtons={[
             {
               doAction: deleteSearch,
-              title: (searchId: string) => `Delete item ${searchId}`,
+              title: (searchId: string) => `Delete search ${searchId}`,
               ActionIcon: DeleteIcon,
+            },
+            {
+              doAction: emailSearch,
+              title: (searchId: string) => `Email Data for ${searchId}`,
+              ActionIcon: AttachEmailIcon,
             },
           ]}
         />
