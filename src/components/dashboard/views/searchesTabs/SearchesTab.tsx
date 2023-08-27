@@ -19,6 +19,7 @@ import {
   ListItemIcon,
   Button,
 } from "@mui/material";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import AddIcon from "@mui/icons-material/Add";
 import AttachEmailIcon from "@mui/icons-material/AttachEmail";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -38,6 +39,7 @@ import {
 } from "firebase/firestore";
 import { Search, SearchSpec, SearchProps } from "./Search";
 import { NewSearchModal } from "./SearchModal";
+import { FirestoreBackedSlider } from "components/utils/forms";
 
 const TrackingIcon: FC<Omit<FontAwesomeIconProps, "icon">> = (props) => (
   <FontAwesomeIcon icon={faChartSimple} {...props} />
@@ -256,6 +258,33 @@ const SearchesTab: FC<{
   return (
     <>
       <Box alignItems="center">
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "baseline",
+            gap: 2,
+          }}
+        >
+          <AccessTimeIcon />
+          <Typography sx={{ mt: 4, mb: 2 }} variant="h6" component="div">
+            Hours Between Collection
+          </Typography>
+        </Box>
+
+        <FirestoreBackedSlider
+          sx={{ maxWidth: 300 }}
+          docSnap={userConfigSnapshot!}
+          fieldPath="searches.hoursBetweenCollection"
+          valueLabelDisplay="auto"
+          min={0}
+          max={24}
+          step={1}
+          marks={[
+            { value: 0, label: "0" },
+            { value: 24, label: "24" },
+          ]}
+        />
         <Box
           sx={{
             display: "flex",

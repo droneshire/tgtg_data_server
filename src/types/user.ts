@@ -26,6 +26,7 @@ export interface Searches {
       sendEmail: boolean;
     };
   };
+  hoursBetweenCollection: number;
 }
 
 export interface Preferences {
@@ -58,5 +59,6 @@ export const DEFAULT_USER_CONFIG = {
   },
   searches: {
     items: {},
+    hoursBetweenCollection: 3,
   },
 }
