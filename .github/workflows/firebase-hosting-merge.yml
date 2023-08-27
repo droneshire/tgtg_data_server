@@ -18,6 +18,7 @@ jobs:
           echo REACT_APP_FIREBASE_SENDER_ID='${{ secrets.REACT_APP_FIREBASE_SENDER_ID }}' >> .env
           echo REACT_APP_FIREBASE_APP_ID='${{ secrets.REACT_APP_FIREBASE_APP_ID }}' >> .env
           echo REACT_APP_FIREBASE_MEASUREMENT_ID='${{ secrets.REACT_APP_FIREBASE_MEASUREMENT_ID }}' >> .env
+          echo REACT_APP_ADMIN_USERS='${{ secrets.REACT_APP_ADMIN_USERS }}' >> .env
           cat .env
           npm ci &&
           npm run build
