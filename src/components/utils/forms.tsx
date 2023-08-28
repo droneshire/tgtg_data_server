@@ -242,13 +242,12 @@ export function FirestoreBackedTimeField<DocType extends object>({
   ...props
 }: FirestoreBackedTimeFieldProps<DocType>) {
   let mutableDate = dayjs("2022-04-17T6:00");
-  const defaultHour = 6;
-  const backedValue = docSnap.get(fieldPath) ?? defaultHour;
-  const [inputValue, setInputValue] = useState(mutableDate);
+  const backedValue = docSnap.get(fieldPath) ?? mutableDate.hour();
+  const [inputValue, setInputValue] = useState(mutableDate.hour(backedValue));
   const {
     runAction: update,
     running: updating,
-    error: updateError,
+    error,
     clearError,
   } = useAsyncAction((value: number) =>
     updateDoc(docSnap.ref, fieldPath, value)
@@ -258,9 +257,7 @@ export function FirestoreBackedTimeField<DocType extends object>({
     if (!value) {
       return;
     }
-
-    const hour = value.hour();
-    update(hour);
+    update(value.hour());
   };
 
   useEffect(() => {
