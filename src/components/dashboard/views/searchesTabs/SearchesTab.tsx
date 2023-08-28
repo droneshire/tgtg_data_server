@@ -39,7 +39,10 @@ import {
 } from "firebase/firestore";
 import { Search, SearchSpec, SearchProps } from "./Search";
 import { NewSearchModal } from "./SearchModal";
-import { FirestoreBackedSlider } from "components/utils/forms";
+import {
+  FirestoreBackedSlider,
+  FirestoreBackedTimeField,
+} from "components/utils/forms";
 
 const TrackingIcon: FC<Omit<FontAwesomeIconProps, "icon">> = (props) => (
   <FontAwesomeIcon icon={faChartSimple} {...props} />
@@ -268,23 +271,33 @@ const SearchesTab: FC<{
         >
           <AccessTimeIcon />
           <Typography sx={{ mt: 4, mb: 2 }} variant="h6" component="div">
-            Hours Between Collection
+            Data Collection Timing
           </Typography>
         </Box>
-
-        <FirestoreBackedSlider
-          sx={{ maxWidth: 300 }}
-          docSnap={userConfigSnapshot!}
-          fieldPath="searches.hoursBetweenCollection"
-          valueLabelDisplay="auto"
-          min={0}
-          max={24}
-          step={1}
-          marks={[
-            { value: 0, label: "0" },
-            { value: 24, label: "24" },
-          ]}
-        />
+        <Box>
+          <FirestoreBackedTimeField
+            docSnap={userConfigSnapshot!}
+            fieldPath="searches.collectionTimeStart"
+            disabled={false}
+            label="Start Time"
+            views={["hours"]}
+          />
+        </Box>
+        <Box>
+          <FirestoreBackedSlider
+            sx={{ maxWidth: 300 }}
+            docSnap={userConfigSnapshot!}
+            fieldPath="searches.hoursBetweenCollection"
+            valueLabelDisplay="auto"
+            min={0}
+            max={24}
+            step={1}
+            marks={[
+              { value: 0, label: "0" },
+              { value: 24, label: "24" },
+            ]}
+          />
+        </Box>
         <Box
           sx={{
             display: "flex",

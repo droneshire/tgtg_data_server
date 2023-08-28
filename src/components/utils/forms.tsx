@@ -21,8 +21,10 @@ import Edit from "@mui/icons-material/Edit";
 import CheckCircle from "@mui/icons-material/CheckCircleOutline";
 import { IMaskInput } from "react-imask";
 import { DateRange } from "@mui/x-date-pickers-pro";
+import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { TimePicker, TimePickerProps } from "@mui/x-date-pickers/TimePicker";
 import {
   SingleInputTimeRangeField,
   SingleInputTimeRangeFieldProps,
@@ -223,6 +225,63 @@ export function FirestoreBackedRangeSlider<DocType extends object>({
         </Alert>
       </Snackbar>
     </>
+  );
+}
+interface FirestoreBackedTimeFieldProps<DocType extends object>
+  extends TimePickerProps<Dayjs> {
+  docSnap: DocumentSnapshot<DocType>;
+  fieldPath: NestedKeyOf<DocType>;
+  disabled?: boolean;
+  label?: string;
+}
+export function FirestoreBackedTimeField<DocType extends object>({
+  docSnap,
+  fieldPath,
+  disabled,
+  label,
+  ...props
+}: FirestoreBackedTimeFieldProps<DocType>) {
+  let mutableDate = dayjs("2022-04-17T6:00");
+  const defaultHour = 6;
+  const backedValue = docSnap.get(fieldPath) ?? defaultHour;
+  const [inputValue, setInputValue] = useState(mutableDate);
+  const {
+    runAction: update,
+    running: updating,
+    error: updateError,
+    clearError,
+  } = useAsyncAction((value: number) =>
+    updateDoc(docSnap.ref, fieldPath, value)
+  );
+
+  const onChangeHandler = (value: Dayjs | null) => {
+    if (!value) {
+      return;
+    }
+
+    const hour = value.hour();
+    update(hour);
+  };
+
+  useEffect(() => {
+    if (!updating) {
+      mutableDate.hour(backedValue);
+      setInputValue(mutableDate);
+    }
+  }, [updating, backedValue]);
+
+  return (
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <DemoContainer components={["TimePicker"]}>
+        <TimePicker
+          label={label}
+          value={inputValue}
+          disabled={disabled}
+          onChange={onChangeHandler}
+          {...props}
+        />
+      </DemoContainer>
+    </LocalizationProvider>
   );
 }
 

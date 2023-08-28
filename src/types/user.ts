@@ -1,3 +1,4 @@
+import firebase from "firebase/app";
 
 export enum ClientAction {
   NONE = "NONE",
@@ -27,6 +28,7 @@ export interface Searches {
     };
   };
   hoursBetweenCollection: number;
+  collectionTimeStart: number;
 }
 
 export interface Preferences {
