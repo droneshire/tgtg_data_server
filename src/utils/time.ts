@@ -26,3 +26,13 @@ export function getFixedTimeFromMinutes(fixedDate: Date, minutes: number): Date 
 export function getMinutesFromMidnight(date: Date): number {
   return date.getHours() * 60 + date.getMinutes();
 }
+
+export function getNumbersThatAreFullyDivisible(num: number): number[] {
+  const numbers: number[] = [];
+  for (let i = 0; i < num; i++) {
+    if (num % i === 0) {
+      numbers.push(i);
+    }
+  }
+  return numbers;
+}

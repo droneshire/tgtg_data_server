@@ -225,6 +225,7 @@ const SearchActivityGroup: FC<{
 const SearchesTab: FC<{
   userConfigSnapshot: DocumentSnapshot<ClientConfig>;
 }> = ({ userConfigSnapshot }) => {
+  const hour_divisors = [1, 2, 3, 4, 6, 8, 12, 24];
   const searches = userConfigSnapshot?.data()?.searches;
   const [modalOpen, setModalOpen] = useState(false);
   const existingsearchIds = useMemo(
@@ -258,6 +259,22 @@ const SearchesTab: FC<{
     );
   };
 
+  const marks = useMemo(() => {
+    const hour_divisor_marks: { value: number; label: string }[] = Array(
+      hour_divisors.length
+    )
+      .fill(0)
+      .map((_, index) => {
+        const divisor = hour_divisors[index];
+        return { value: divisor, label: `${divisor} hours` };
+      });
+    return hour_divisor_marks;
+  }, []);
+
+  const scaleValue = (value: number) => {
+    return hour_divisors[value];
+  };
+
   return (
     <>
       <Box alignItems="center">
@@ -269,7 +286,6 @@ const SearchesTab: FC<{
             gap: 2,
           }}
         >
-          <AccessTimeIcon />
           <Typography sx={{ mt: 4, mb: 2 }} variant="h6" component="div">
             Data Collection Timing
           </Typography>
@@ -284,18 +300,23 @@ const SearchesTab: FC<{
           />
         </Box>
         <Box>
+          <Typography sx={{ mt: 4, mb: 2 }} component="div">
+            Hours Between Collection
+          </Typography>
           <FirestoreBackedSlider
             sx={{ maxWidth: 300 }}
             docSnap={userConfigSnapshot!}
             fieldPath="searches.hoursBetweenCollection"
             valueLabelDisplay="auto"
             min={0}
-            max={24}
+            max={hour_divisors.length - 1}
             step={1}
             marks={[
               { value: 0, label: "0" },
-              { value: 24, label: "24" },
+              { value: hour_divisors.length - 1, label: "24" },
             ]}
+            defaultValue={2}
+            scale={scaleValue}
           />
         </Box>
         <Box

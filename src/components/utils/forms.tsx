@@ -120,7 +120,11 @@ export function FirestoreBackedSlider<DocType extends object>({
       <Slider
         value={value}
         disabled={disabled || updating}
-        onChange={(_, value) => setValue(value)}
+        onChange={(_, newValue) => {
+          if (newValue !== value) {
+            setValue(newValue);
+          }
+        }}
         onChangeCommitted={(_, value) => update(value as number)}
         {...props}
       />
