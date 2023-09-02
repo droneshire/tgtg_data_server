@@ -1,5 +1,3 @@
-import firebase from "firebase/app";
-
 export enum ClientAction {
   NONE = "NONE",
   DELETE = "DELETE",
@@ -25,6 +23,7 @@ export interface Searches {
     [id: string]: {
       region: Region;
       sendEmail: boolean;
+      lastSearchTime: number;
     };
   };
   hoursBetweenCollection: number;

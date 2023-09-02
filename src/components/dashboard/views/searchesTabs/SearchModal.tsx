@@ -102,6 +102,7 @@ export const NewSearchModal: FC<SearchModalProps> = ({
   const [latitude, setLatitude] = useState(0.0);
   const [longitude, setLongitude] = useState(0.0);
   const [radius, setRadius] = useState(0);
+  const [lastSearchTime, setLastSearchTime] = useState(0);
   const [itemName, setitemName] = useState("");
   const {
     runAction: doCreateSearch,
@@ -119,7 +120,15 @@ export const NewSearchModal: FC<SearchModalProps> = ({
     setLatitude(0.0);
     setLongitude(0.0);
     setRadius(0);
-  }, [setSearchName, setitemName, setLatitude, setLongitude, setRadius]);
+    setLastSearchTime(0);
+  }, [
+    setSearchName,
+    setitemName,
+    setLatitude,
+    setLongitude,
+    setRadius,
+    setLastSearchTime,
+  ]);
 
   const doSubmit = useCallback(async () => {
     if (disabled) {
@@ -135,6 +144,7 @@ export const NewSearchModal: FC<SearchModalProps> = ({
       searchId: searchName,
       region: region,
       sendEmail: false,
+      lastSearchTime: lastSearchTime,
     });
     if (success) {
       reset();
@@ -150,6 +160,7 @@ export const NewSearchModal: FC<SearchModalProps> = ({
     latitude,
     longitude,
     radius,
+    lastSearchTime,
   ]);
 
   const keyHander = useCallback(
