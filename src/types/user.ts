@@ -62,5 +62,6 @@ export const DEFAULT_USER_CONFIG = {
   searches: {
     items: {},
     hoursBetweenCollection: 3,
+    collectionTimeStart: 6,
   },
 }
