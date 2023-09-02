@@ -57,9 +57,8 @@ export const MapsModal: FC<MapProps> = ({ updateRegion, isUpdating }) => {
       return;
     }
 
-    
     setClickedPos({
-      lattitude: event.latLng.lat(),
+      latitude: event.latLng.lat(),
       longitude: event.latLng.lng(),
     });
     setSelectedMarker({} as MarkerType);
