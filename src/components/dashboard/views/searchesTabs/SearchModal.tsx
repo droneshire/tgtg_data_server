@@ -24,15 +24,15 @@ export interface SliderProps {
   isUpdating: boolean;
 }
 const RegionSliders: FC<SliderProps> = ({ updateRegion, isUpdating }) => {
-  const [lattitude, setLattitude] = useState(0);
+  const [latitude, setLatitude] = useState(0);
   const [longitude, setLongitude] = useState(0);
   const [radius, setRadius] = useState(0);
 
   const sliderData = [
     {
-      label: "Lattitude (deg)",
-      value: lattitude,
-      onChange: (newValue: number) => setLattitude(newValue),
+      label: "latitude (deg)",
+      value: latitude,
+      onChange: (newValue: number) => setLatitude(newValue),
       min: -90,
       max: 90,
       step: 0.1,
@@ -59,8 +59,8 @@ const RegionSliders: FC<SliderProps> = ({ updateRegion, isUpdating }) => {
     if (isUpdating) {
       return;
     }
-    updateRegion({ lattitude, longitude, radius });
-  }, [lattitude, longitude, radius, isUpdating]);
+    updateRegion({ latitude, longitude, radius });
+  }, [latitude, longitude, radius, isUpdating]);
 
   return (
     <>
@@ -99,7 +99,7 @@ export const NewSearchModal: FC<SearchModalProps> = ({
 }) => {
   const modalRef = useRef<HTMLElement>(null);
   const [searchName, setSearchName] = useState("");
-  const [lattitude, setLattitude] = useState(0.0);
+  const [latitude, setLatitude] = useState(0.0);
   const [longitude, setLongitude] = useState(0.0);
   const [radius, setRadius] = useState(0);
   const [itemName, setitemName] = useState("");
@@ -116,17 +116,17 @@ export const NewSearchModal: FC<SearchModalProps> = ({
   const reset = useCallback(() => {
     setSearchName("");
     setitemName("");
-    setLattitude(0.0);
+    setLatitude(0.0);
     setLongitude(0.0);
     setRadius(0);
-  }, [setSearchName, setitemName, setLattitude, setLongitude, setRadius]);
+  }, [setSearchName, setitemName, setLatitude, setLongitude, setRadius]);
 
   const doSubmit = useCallback(async () => {
     if (disabled) {
       return;
     }
     const region: Region = {
-      lattitude: lattitude,
+      latitude: latitude,
       longitude: longitude,
       radius: radius,
     };
@@ -147,7 +147,7 @@ export const NewSearchModal: FC<SearchModalProps> = ({
     searchName,
     itemName,
     disabled,
-    lattitude,
+    latitude,
     longitude,
     radius,
   ]);
@@ -202,7 +202,7 @@ export const NewSearchModal: FC<SearchModalProps> = ({
           />
           <RegionSliders
             updateRegion={(region) => {
-              setLattitude(region.lattitude);
+              setLatitude(region.latitude);
               setLongitude(region.longitude);
               setRadius(region.radius);
             }}

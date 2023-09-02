@@ -46,17 +46,17 @@ export const Search: FC<SearchProps> = ({
   const handleActionMenuClose = () => {
     setActionMenuAnchorEl(null);
   };
-  const strLattitude = region.lattitude.toString();
+  const strLatitude = region.latitude.toString();
   const lattitudeText =
-    strLattitude.slice(0, strLattitude.indexOf(".") + 3) +
+    strLatitude.slice(0, strLatitude.indexOf(".") + 3) +
     "°" +
-    (strLattitude.includes("-") ? "S" : "N");
+    (strLatitude.includes("-") ? "S" : "N");
   const strLongitude = region.longitude.toString();
   const longitudeText =
     strLongitude.slice(0, strLongitude.indexOf(".") + 3) +
     "°" +
     (strLongitude.includes("-") ? "W" : "E");
-  const googleMapsUrl = generateMapsUrl(strLattitude, strLongitude);
+  const googleMapsUrl = generateMapsUrl(strLatitude, strLongitude);
 
   return (
     <TableRow hover>

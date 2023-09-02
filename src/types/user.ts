@@ -7,7 +7,7 @@ export enum ClientAction {
 }
 
 export interface Region {
-  lattitude: number;
+  latitude: number;
   longitude: number;
   radius: number;
 }
