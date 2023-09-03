@@ -276,7 +276,9 @@ const ClientsTab: FC<{
       if (clientAction === ClientAction.DELETE) {
         deleteDoc(doc(clientsConfigRef, actionClientId));
       } else if (clientAction === ClientAction.ADD) {
-        setDoc(doc(clientsConfigRef, actionClientId), DEFAULT_USER_CONFIG);
+        const default_new_user: ClientConfig = { ...DEFAULT_USER_CONFIG };
+        default_new_user.preferences.notifications.email.email = actionClientId;
+        setDoc(doc(clientsConfigRef, actionClientId), default_new_user);
       }
     }
   }, [clientAction, actionClientId, clientsConfigRef]);
