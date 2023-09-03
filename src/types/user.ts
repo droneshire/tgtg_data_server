@@ -45,7 +45,7 @@ export interface ClientConfig {
   searches: Searches;
 }
 
-export const DEFAULT_USER_CONFIG = {
+export const DEFAULT_USER_CONFIG: ClientConfig = {
   preferences: {
     notifications: {
       email: { email: "", updatesEnabled: true },
