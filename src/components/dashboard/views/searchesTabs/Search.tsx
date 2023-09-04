@@ -95,7 +95,7 @@ export const Search: FC<SearchProps> = ({
             <MenuItem
               key={index}
               onClick={() => {
-                doAction;
+                doAction();
                 handleActionMenuClose();
               }}
             >

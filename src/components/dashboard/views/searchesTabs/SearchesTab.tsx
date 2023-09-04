@@ -119,7 +119,6 @@ const SearchActivityGroup: FC<{
     setActionMenuAnchorEl(event.currentTarget);
   };
   const handleActionMenuClose = () => {
-    console.log("handleActionMenuClose");
     setActionMenuAnchorEl(null);
   };
 
