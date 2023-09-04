@@ -30,7 +30,7 @@ const RegionSliders: FC<SliderProps> = ({ updateRegion, isUpdating }) => {
 
   const sliderData = [
     {
-      label: "latitude (deg)",
+      label: "Latitude (deg)",
       value: latitude,
       onChange: (newValue: number) => setLatitude(newValue),
       min: -90,
@@ -50,7 +50,7 @@ const RegionSliders: FC<SliderProps> = ({ updateRegion, isUpdating }) => {
       value: radius,
       onChange: (newValue: number) => setRadius(newValue),
       min: 0,
-      max: 10,
+      max: 20,
       step: 1,
     },
   ];
@@ -67,8 +67,19 @@ const RegionSliders: FC<SliderProps> = ({ updateRegion, isUpdating }) => {
       {sliderData.map((slider, index) => (
         <Box key={index}>
           <Typography gutterBottom>{slider.label}</Typography>
+          <TextField
+            key={slider.label + "input" + index.toString()}
+            value={slider.value}
+            onChange={(e) => slider.onChange(parseFloat(e.target.value))}
+            type="number"
+            inputProps={{
+              min: slider.min,
+              max: slider.max,
+              step: slider.step,
+            }}
+          />
           <Slider
-            key={slider.label}
+            key={slider.label + index.toString()}
             value={slider.value}
             onChange={(event: Event, newValue: number | number[]) =>
               slider.onChange(newValue as number)
