@@ -191,9 +191,14 @@ export const NewSearchModal: FC<SearchModalProps> = ({
   );
   useKeyPress(["Enter", "Escape"], keyHander);
 
+  const handleOnClose = useCallback(() => {
+    reset();
+    onClose();
+  }, [reset, onClose]);
+
   return (
     <>
-      <Modal open={open} onClose={onClose}>
+      <Modal open={open} onClose={handleOnClose}>
         <Box
           ref={modalRef}
           sx={{
@@ -243,7 +248,7 @@ export const NewSearchModal: FC<SearchModalProps> = ({
               <CircularProgress />
             ) : (
               <AddEditSearchTooltip
-                edit={searchSpec.searchId !== ""}
+                edit={!!initialSearch}
                 doSubmit={doSubmit}
                 disabled={disabled}
               />
