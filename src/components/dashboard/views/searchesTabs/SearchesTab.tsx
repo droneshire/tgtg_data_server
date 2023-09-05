@@ -344,11 +344,11 @@ const SearchesTab: FC<{
               title: (searchId: string) => `Delete search ${searchId}`,
               ActionIcon: DeleteIcon,
             },
-            {
-              doAction: editSearch,
-              title: (searchId: string) => `Edit search ${searchId}`,
-              ActionIcon: EditIcon,
-            },
+            // {
+            //   doAction: editSearch,
+            //   title: (searchId: string) => `Edit search ${searchId}`,
+            //   ActionIcon: EditIcon,
+            // },
             {
               doAction: emailSearch,
               title: (searchId: string) => `Email Data for ${searchId}`,
