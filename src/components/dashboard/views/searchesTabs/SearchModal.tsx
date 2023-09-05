@@ -34,12 +34,6 @@ const RegionSliders: FC<SliderProps> = ({
   const [longitude, setLongitude] = useState(initialRegion.longitude);
   const [radius, setRadius] = useState(initialRegion.radius);
 
-  useEffect(() => {
-    setLatitude(initialRegion.latitude);
-    setLongitude(initialRegion.longitude);
-    setRadius(initialRegion.radius);
-  }, [initialRegion]);
-
   const handleValueChange =
     (setter: (value: number) => void) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -145,10 +139,6 @@ export const NewSearchModal: FC<SearchModalProps> = ({
     error,
     clearError,
   } = useAsyncAction(createSearch);
-
-  useEffect(() => {
-    setSearchSpec(initialSearch || defaultSearchSpec);
-  }, [initialSearch, defaultSearchSpec]);
 
   const validsearchId = useMemo(() => {
     return (
