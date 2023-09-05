@@ -41,7 +41,7 @@ const RegionSliders: FC<SliderProps> = ({
   }, [initialRegion]);
 
   const handleValueChange =
-    (setter: React.Dispatch<React.SetStateAction<number>>) =>
+    (setter: (value: number) => void) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = parseFloat(e.target.value);
       if (!isNaN(value)) {
