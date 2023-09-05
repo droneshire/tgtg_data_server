@@ -166,6 +166,7 @@ const SearchActivityGroup: FC<{
               </TableCell>
               <TableCell> Lat, Long </TableCell>
               <TableCell> Radius </TableCell>
+              <TableCell> Results </TableCell>
               <TableCell sx={{ textAlign: "right" }}>
                 <Button onClick={handleActionMenuClick}>Actions</Button>
                 <Menu
@@ -375,7 +376,13 @@ const SearchesTab: FC<{
             item
           );
         }}
-        initialSearch={null}
+        initialSearch={{
+          region: { latitude: 44, longitude: 44, radius: 4 },
+          searchId: "Foobar",
+          sendEmail: false,
+          lastSearchTime: 0,
+          numResults: 0,
+        }}
       />
     </>
   );

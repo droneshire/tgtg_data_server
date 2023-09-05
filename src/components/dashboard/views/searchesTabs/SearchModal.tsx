@@ -128,6 +128,7 @@ export const NewSearchModal: FC<SearchModalProps> = ({
     searchId: "",
     sendEmail: false,
     lastSearchTime: 0,
+    numResults: 0,
   };
   const [searchSpec, setSearchSpec] = useState<SearchSpec>(
     initialSearch || defaultSearchSpec

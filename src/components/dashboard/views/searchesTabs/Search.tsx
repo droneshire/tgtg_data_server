@@ -33,6 +33,7 @@ export type SearchProps = SearchSpec & {
 export const Search: FC<SearchProps> = ({
   searchId,
   region,
+  numResults,
   actionButtons,
   selectedSearches,
   toggleSearchSelection,
@@ -84,6 +85,7 @@ export const Search: FC<SearchProps> = ({
         </a>
       </TableCell>
       <TableCell> {region.radius + " mi"} </TableCell>
+      <TableCell> {numResults || 0} </TableCell>
       <TableCell sx={{ textAlign: "right" }}>
         <Button onClick={handleActionMenuClick}>Actions</Button>
         <Menu

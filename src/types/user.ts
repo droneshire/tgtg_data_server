@@ -24,6 +24,7 @@ export interface Searches {
       region: Region;
       sendEmail: boolean;
       lastSearchTime: number;
+      numResults: number;
     };
   };
   hoursBetweenCollection: number;
