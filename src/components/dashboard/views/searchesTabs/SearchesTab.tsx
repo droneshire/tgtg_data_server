@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useMemo, useState } from "react";
+import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   Tooltip,
@@ -19,10 +19,10 @@ import {
   ListItemIcon,
   Button,
 } from "@mui/material";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import AddIcon from "@mui/icons-material/Add";
 import AttachEmailIcon from "@mui/icons-material/AttachEmail";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import { ClientConfig } from "types/user";
 import { Box } from "@mui/system";
 import {
@@ -227,19 +227,22 @@ const SearchesTab: FC<{
   const hour_divisors = [1, 2, 3, 4, 6, 8, 12, 24];
   const searches = userConfigSnapshot?.data()?.searches;
   const [modalOpen, setModalOpen] = useState(false);
-  const existingsearchIds = useMemo(
-    () => Object.keys(searches?.items || {}),
-    [searches]
-  );
 
   if (!searches) {
     return <CircularProgress />;
   }
-  const searchItems: SearchSpec[] = [];
-  Object.entries(searches.items || {}).forEach((t) => {
-    const [searchId, item] = t;
-    searchItems.push({ searchId, ...item });
-  });
+  const existingsearchIds = useMemo(
+    () => Object.keys(searches?.items || {}),
+    [searches]
+  );
+  const searchItems: SearchSpec[] = useMemo(() => {
+    const items: SearchSpec[] = [];
+    Object.entries(searches?.items || {}).forEach((t) => {
+      const [searchId, item] = t;
+      items.push({ searchId, ...item });
+    });
+    return items;
+  }, [searches]);
 
   const deleteSearch = (searchId: string) => {
     updateDoc(
@@ -250,13 +253,14 @@ const SearchesTab: FC<{
   };
 
   const emailSearch = (searchId: string) => {
-    console.log("emailSearch", searchId);
     updateDoc(
       userConfigSnapshot.ref,
       new FieldPath("searches", "items", searchId, "sendEmail"),
       true
     );
   };
+
+  const editSearch = (searchId: string) => {};
 
   const marks = useMemo(() => {
     const hour_divisor_marks: { value: number; label: string }[] = Array(
@@ -340,6 +344,11 @@ const SearchesTab: FC<{
               ActionIcon: DeleteIcon,
             },
             {
+              doAction: editSearch,
+              title: (searchId: string) => `Edit search ${searchId}`,
+              ActionIcon: EditIcon,
+            },
+            {
               doAction: emailSearch,
               title: (searchId: string) => `Email Data for ${searchId}`,
               ActionIcon: AttachEmailIcon,
@@ -366,6 +375,7 @@ const SearchesTab: FC<{
             item
           );
         }}
+        initialSearch={null}
       />
     </>
   );
