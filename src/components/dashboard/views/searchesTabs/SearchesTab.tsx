@@ -376,13 +376,7 @@ const SearchesTab: FC<{
             item
           );
         }}
-        initialSearch={{
-          region: { latitude: 44, longitude: 44, radius: 4 },
-          searchId: "Foobar",
-          sendEmail: false,
-          lastSearchTime: 0,
-          numResults: 0,
-        }}
+        initialSearch={null}
       />
     </>
   );
