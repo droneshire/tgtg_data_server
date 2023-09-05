@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useRef, useState, useMemo } from "react";
 
 import {
   Tooltip,
@@ -12,6 +12,7 @@ import {
   Slider,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
 import { Box } from "@mui/system";
 
 import { useAsyncAction } from "hooks/async";
@@ -22,11 +23,31 @@ import { SearchSpec } from "./Search";
 export interface SliderProps {
   updateRegion: (region: Region) => void;
   isUpdating: boolean;
+  initialRegion: Region;
 }
-const RegionSliders: FC<SliderProps> = ({ updateRegion, isUpdating }) => {
-  const [latitude, setLatitude] = useState(0);
-  const [longitude, setLongitude] = useState(0);
-  const [radius, setRadius] = useState(0);
+const RegionSliders: FC<SliderProps> = ({
+  updateRegion,
+  isUpdating,
+  initialRegion,
+}) => {
+  const [latitude, setLatitude] = useState(initialRegion.latitude);
+  const [longitude, setLongitude] = useState(initialRegion.longitude);
+  const [radius, setRadius] = useState(initialRegion.radius);
+
+  useEffect(() => {
+    setLatitude(initialRegion.latitude);
+    setLongitude(initialRegion.longitude);
+    setRadius(initialRegion.radius);
+  }, [initialRegion]);
+
+  const handleValueChange =
+    (setter: React.Dispatch<React.SetStateAction<number>>) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = parseFloat(e.target.value);
+      if (!isNaN(value)) {
+        setter(value);
+      }
+    };
 
   const sliderData = [
     {
@@ -56,21 +77,19 @@ const RegionSliders: FC<SliderProps> = ({ updateRegion, isUpdating }) => {
   ];
 
   useEffect(() => {
-    if (isUpdating) {
-      return;
+    if (!isUpdating) {
+      updateRegion({ latitude, longitude, radius });
     }
-    updateRegion({ latitude, longitude, radius });
   }, [latitude, longitude, radius, isUpdating]);
 
   return (
     <>
-      {sliderData.map((slider, index) => (
-        <Box key={index}>
+      {sliderData.map((slider) => (
+        <Box key={slider.label}>
           <Typography gutterBottom>{slider.label}</Typography>
           <TextField
-            key={slider.label + "input" + index.toString()}
             value={slider.value}
-            onChange={(e) => slider.onChange(parseFloat(e.target.value))}
+            onChange={handleValueChange(slider.onChange)}
             type="number"
             inputProps={{
               min: slider.min,
@@ -79,7 +98,6 @@ const RegionSliders: FC<SliderProps> = ({ updateRegion, isUpdating }) => {
             }}
           />
           <Slider
-            key={slider.label + index.toString()}
             value={slider.value}
             onChange={(event: Event, newValue: number | number[]) =>
               slider.onChange(newValue as number)
@@ -101,20 +119,26 @@ export interface SearchModalProps {
   onClose: () => void;
   createSearch: (item: SearchSpec) => Promise<void> | void;
   existingsearchIds: string[];
+  initialSearch: SearchSpec | null;
 }
 export const NewSearchModal: FC<SearchModalProps> = ({
   open,
   onClose,
   createSearch,
   existingsearchIds,
+  initialSearch,
 }) => {
   const modalRef = useRef<HTMLElement>(null);
-  const [searchName, setSearchName] = useState("");
-  const [latitude, setLatitude] = useState(0.0);
-  const [longitude, setLongitude] = useState(0.0);
-  const [radius, setRadius] = useState(0);
-  const [lastSearchTime, setLastSearchTime] = useState(0);
-  const [itemName, setitemName] = useState("");
+  const defaultSearchSpec: SearchSpec = {
+    region: { latitude: 0, longitude: 0, radius: 0 },
+    searchId: "",
+    sendEmail: false,
+    lastSearchTime: 0,
+  };
+  const [searchSpec, setSearchSpec] = useState<SearchSpec>(
+    initialSearch || defaultSearchSpec
+  );
+
   const {
     runAction: doCreateSearch,
     running: creatingSearch,
@@ -122,57 +146,42 @@ export const NewSearchModal: FC<SearchModalProps> = ({
     clearError,
   } = useAsyncAction(createSearch);
 
-  const validsearchId = searchName && !existingsearchIds.includes(searchName);
-  const disabled = creatingSearch || !validsearchId;
+  useEffect(() => {
+    setSearchSpec(initialSearch || defaultSearchSpec);
+  }, [initialSearch, defaultSearchSpec]);
+
+  const validsearchId = useMemo(() => {
+    return (
+      searchSpec.searchId && !existingsearchIds.includes(searchSpec.searchId)
+    );
+  }, [searchSpec, existingsearchIds]);
+
+  const disabled = useMemo(() => {
+    return creatingSearch || !validsearchId;
+  }, [creatingSearch, validsearchId]);
 
   const reset = useCallback(() => {
-    setSearchName("");
-    setitemName("");
-    setLatitude(0.0);
-    setLongitude(0.0);
-    setRadius(0);
-    setLastSearchTime(0);
-  }, [
-    setSearchName,
-    setitemName,
-    setLatitude,
-    setLongitude,
-    setRadius,
-    setLastSearchTime,
-  ]);
+    setSearchSpec(defaultSearchSpec);
+  }, [setSearchSpec, defaultSearchSpec]);
 
   const doSubmit = useCallback(async () => {
     if (disabled) {
       return;
     }
     const region: Region = {
-      latitude: latitude,
-      longitude: longitude,
-      radius: radius,
+      latitude: searchSpec.region.latitude,
+      longitude: searchSpec.region.longitude,
+      radius: searchSpec.region.radius,
     };
 
     const success = await doCreateSearch({
-      searchId: searchName,
-      region: region,
-      sendEmail: false,
-      lastSearchTime: lastSearchTime,
+      ...searchSpec,
     });
     if (success) {
       reset();
       onClose();
     }
-  }, [
-    onClose,
-    reset,
-    doCreateSearch,
-    searchName,
-    itemName,
-    disabled,
-    latitude,
-    longitude,
-    radius,
-    lastSearchTime,
-  ]);
+  }, [onClose, reset, doCreateSearch, disabled, searchSpec]);
 
   const keyHander = useCallback(
     ({ key }: KeyboardEvent) => {
@@ -217,36 +226,36 @@ export const NewSearchModal: FC<SearchModalProps> = ({
           <TextField
             label="Search Name"
             variant="standard"
-            value={searchName}
-            onChange={(e) => setSearchName(e.target.value)}
+            value={searchSpec.searchId}
+            onChange={(e) => {
+              const newSearchSpec = {
+                ...searchSpec,
+                searchId: e.target.value,
+              };
+              setSearchSpec(newSearchSpec);
+            }}
             error={!validsearchId}
             inputProps={{ inputMode: "text" }}
           />
           <RegionSliders
             updateRegion={(region) => {
-              setLatitude(region.latitude);
-              setLongitude(region.longitude);
-              setRadius(region.radius);
+              setSearchSpec({
+                ...searchSpec,
+                region,
+              });
             }}
             isUpdating={creatingSearch}
+            initialRegion={searchSpec.region}
           />
           <Box textAlign="center">
             {creatingSearch ? (
               <CircularProgress />
             ) : (
-              <Tooltip title="Add item">
-                <span>
-                  <Fab
-                    color="primary"
-                    variant="extended"
-                    disabled={disabled}
-                    onClick={doSubmit}
-                  >
-                    <AddIcon />
-                    Add
-                  </Fab>
-                </span>
-              </Tooltip>
+              <AddEditSearchTooltip
+                edit={searchSpec.searchId !== ""}
+                doSubmit={doSubmit}
+                disabled={disabled}
+              />
             )}
           </Box>
         </Box>
@@ -257,5 +266,31 @@ export const NewSearchModal: FC<SearchModalProps> = ({
         </Alert>
       </Snackbar>
     </>
+  );
+};
+
+export const AddEditSearchTooltip: FC<{
+  edit: boolean;
+  disabled: boolean;
+  doSubmit: () => void;
+}> = ({ edit, disabled, doSubmit }) => {
+  const tooltipText = edit ? "Edit Item" : "Add Item";
+  const text = edit ? "Edit" : "Add";
+  const icon = edit ? <EditIcon /> : <AddIcon />; // Assuming you'd use EditIcon for editing
+
+  return (
+    <Tooltip title={tooltipText}>
+      <span>
+        <Fab
+          color="primary"
+          variant="extended"
+          disabled={disabled}
+          onClick={doSubmit}
+        >
+          {icon}
+          {text}
+        </Fab>
+      </span>
+    </Tooltip>
   );
 };
