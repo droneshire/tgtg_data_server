@@ -23,7 +23,7 @@ import AddIcon from "@mui/icons-material/Add";
 import AttachEmailIcon from "@mui/icons-material/AttachEmail";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import { ClientConfig } from "types/user";
+import { ClientConfig, hourDivisors } from "types/user";
 import { Box } from "@mui/system";
 import {
   FontAwesomeIcon,
@@ -225,7 +225,6 @@ const SearchActivityGroup: FC<{
 const SearchesTab: FC<{
   userConfigSnapshot: DocumentSnapshot<ClientConfig>;
 }> = ({ userConfigSnapshot }) => {
-  const hour_divisors = [1, 2, 3, 4, 6, 8, 12, 24];
   const searches = userConfigSnapshot?.data()?.searches;
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -265,18 +264,18 @@ const SearchesTab: FC<{
 
   const marks = useMemo(() => {
     const hour_divisor_marks: { value: number; label: string }[] = Array(
-      hour_divisors.length
+      hourDivisors.length
     )
       .fill(0)
       .map((_, index) => {
-        const divisor = hour_divisors[index];
+        const divisor = hourDivisors[index];
         return { value: divisor, label: `${divisor} hours` };
       });
     return hour_divisor_marks;
   }, []);
 
   const scaleValue = (value: number) => {
-    return hour_divisors[value];
+    return hourDivisors[value];
   };
 
   return (
@@ -313,11 +312,17 @@ const SearchesTab: FC<{
             fieldPath="searches.hoursBetweenCollection"
             valueLabelDisplay="auto"
             min={0}
-            max={hour_divisors.length - 1}
+            max={hourDivisors.length - 1}
             step={1}
             marks={[
-              { value: 0, label: "0" },
-              { value: hour_divisors.length - 1, label: "24" },
+              {
+                value: 0,
+                label: Math.min(...hourDivisors).toString(),
+              },
+              {
+                value: hourDivisors.length - 1,
+                label: Math.max(...hourDivisors).toString(),
+              },
             ]}
             defaultValue={2}
             scale={scaleValue}

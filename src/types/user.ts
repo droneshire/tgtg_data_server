@@ -4,6 +4,8 @@ export enum ClientAction {
   ADD = "ADD",
 }
 
+export const hourDivisors: number[] = [1, 2, 3, 4, 6, 8, 12, 24];
+
 export interface Region {
   latitude: number;
   longitude: number;
@@ -61,7 +63,7 @@ export const DEFAULT_USER_CONFIG: ClientConfig = {
   },
   searches: {
     items: {},
-    hoursBetweenCollection: 3,
+    hoursBetweenCollection: Math.min(...hourDivisors),
     collectionTimeStart: 6,
   },
 }
