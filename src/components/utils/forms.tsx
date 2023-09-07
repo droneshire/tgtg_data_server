@@ -90,16 +90,23 @@ interface FirestoreBackedSliderProps<DocType extends object>
   extends SliderProps {
   docSnap: DocumentSnapshot<DocType>;
   fieldPath: NestedKeyOf<DocType>;
+  invertScale: (value: number) => number;
 }
 
 export function FirestoreBackedSlider<DocType extends object>({
   docSnap,
   fieldPath,
   disabled,
+  invertScale,
   ...props
 }: FirestoreBackedSliderProps<DocType>) {
-  const savedValue = docSnap.get(fieldPath);
-  const [value, setValue] = useState(savedValue ?? 1);
+  const storedScaledValue = docSnap.get(fieldPath);
+  const initialIndex = props.scale
+    ? invertScale(storedScaledValue)
+    : storedScaledValue;
+
+  const [index, setIndex] = useState<number>(initialIndex);
+
   const {
     runAction: update,
     running: updating,
@@ -111,21 +118,36 @@ export function FirestoreBackedSlider<DocType extends object>({
 
   useEffect(() => {
     if (!updating) {
-      setValue(savedValue);
+      const updatedIndex = props.scale
+        ? invertScale(storedScaledValue)
+        : storedScaledValue;
+      setIndex(updatedIndex);
     }
-  }, [savedValue, updating]);
+  }, [storedScaledValue, updating]);
 
+  const handleIndexChange = (_: any, newIndex: number | number[]) => {
+    if (Array.isArray(newIndex)) {
+      newIndex = newIndex[0];
+    }
+    if (newIndex !== index) {
+      setIndex(newIndex);
+    }
+  };
+
+  const handleValueCommit = (_: any, newIndex: number | number[]) => {
+    if (Array.isArray(newIndex)) {
+      newIndex = newIndex[0];
+    }
+    const scaledValue = props.scale ? props.scale(newIndex) : newIndex;
+    update(scaledValue);
+  };
   return (
     <>
       <Slider
-        value={value}
+        value={index}
         disabled={disabled || updating}
-        onChange={(_, newValue) => {
-          if (newValue !== value) {
-            setValue(newValue);
-          }
-        }}
-        onChangeCommitted={(_, value) => update(value as number)}
+        onChange={handleIndexChange}
+        onChangeCommitted={handleValueCommit}
         {...props}
       />
       <Snackbar open={!!error} autoHideDuration={5000} onClose={clearError}>

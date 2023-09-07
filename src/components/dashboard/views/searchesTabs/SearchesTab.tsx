@@ -43,6 +43,7 @@ import {
   FirestoreBackedSlider,
   FirestoreBackedTimeField,
 } from "components/utils/forms";
+import { useValueWithTimezone } from "@mui/x-date-pickers/internals/hooks/useValueWithTimezone";
 
 const TrackingIcon: FC<Omit<FontAwesomeIconProps, "icon">> = (props) => (
   <FontAwesomeIcon icon={faChartSimple} {...props} />
@@ -310,6 +311,7 @@ const SearchesTab: FC<{
             sx={{ maxWidth: 300 }}
             docSnap={userConfigSnapshot!}
             fieldPath="searches.hoursBetweenCollection"
+            invertScale={(value) => hourDivisors.indexOf(value)}
             valueLabelDisplay="auto"
             min={0}
             max={hourDivisors.length - 1}
