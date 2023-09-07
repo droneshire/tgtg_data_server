@@ -34,7 +34,6 @@ export default function SimpleCountryCodeSelect(props: FormControlProps) {
   const [countryCode, setCountryCode] = React.useState("");
   const handleChange = (event: SelectChangeEvent) => {
     setCountryCode(event.target.value as string);
-    console.log(event.target.value);
   };
 
   return (
