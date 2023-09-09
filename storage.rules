@@ -1,0 +1,20 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Define a function to check if a user is an admin
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == "ryeager12@gmail.com" || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == "auyon.a.siddiq@gmail.com";
+    }
+
+    // Rules to ensure that only admins can read/write everything
+    match /{allPaths=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // Rules to ensure that a user can only read/write their own data
+    match /{userId}/{allUserPaths=**} {
+      allow read, write: if request.auth.uid == userId || isAdmin();
+    }
+  }
+}
