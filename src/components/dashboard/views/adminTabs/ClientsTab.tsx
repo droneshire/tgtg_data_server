@@ -264,6 +264,11 @@ const ClientsTab: FC<{
   const [clientAction, setClientAction] = React.useState<ClientAction>(
     ClientAction.NONE
   );
+
+  if (!clients) {
+    return <CircularProgress />;
+  }
+
   const existinguserIds: ClientSpec[] = React.useMemo(
     () =>
       (clients || {}).map((client) => ({
@@ -282,10 +287,6 @@ const ClientsTab: FC<{
       }
     }
   }, [clientAction, actionClientId, clientsConfigRef]);
-
-  if (!clients) {
-    return <CircularProgress />;
-  }
 
   return (
     <>

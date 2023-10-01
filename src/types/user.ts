@@ -25,7 +25,9 @@ export interface Searches {
     [id: string]: {
       region: Region;
       sendEmail: boolean;
+      eraseData: boolean;
       lastSearchTime: number;
+      lastDownloadTime: number;
       numResults: number;
     };
   };

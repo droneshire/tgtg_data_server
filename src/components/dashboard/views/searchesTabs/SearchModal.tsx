@@ -127,7 +127,9 @@ export const NewSearchModal: FC<SearchModalProps> = ({
     region: { latitude: 0, longitude: 0, radius: 0 },
     searchId: "",
     sendEmail: false,
+    eraseData: false,
     lastSearchTime: 0,
+    lastDownloadTime: 0,
     numResults: 0,
   };
   const [searchSpec, setSearchSpec] = useState<SearchSpec>(
