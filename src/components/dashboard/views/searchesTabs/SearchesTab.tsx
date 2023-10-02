@@ -21,6 +21,7 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import AttachEmailIcon from "@mui/icons-material/AttachEmail";
+import ContentCutIcon from "@mui/icons-material/ContentCut";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import { ClientConfig, hourDivisors } from "types/user";
@@ -141,6 +142,10 @@ const SearchActivityGroup: FC<{
     });
   };
 
+  const selectedItemsString = useMemo(() => {
+    return `${selectedItems.length} selected`;
+  }, [selectedItems]);
+
   return (
     <TableContainer component={Paper} variant="outlined">
       <Table>
@@ -191,7 +196,9 @@ const SearchActivityGroup: FC<{
                             <ActionIcon fontSize="small" />
                           </ListItemIcon>
                         )}
-                        <ListItemText>{title("")}</ListItemText>
+                        <ListItemText>
+                          {title(selectedItemsString)}
+                        </ListItemText>
                       </MenuItem>
                     )
                   )}
@@ -262,6 +269,14 @@ const SearchesTab: FC<{
   };
 
   const editSearch = (searchId: string) => {};
+
+  const deleteSearchData = (searchId: string) => {
+    updateDoc(
+      userConfigSnapshot.ref,
+      new FieldPath("searches", "items", searchId, "eraseData"),
+      true
+    );
+  };
 
   const marks = useMemo(() => {
     const hour_divisor_marks: { value: number; label: string }[] = Array(
@@ -348,8 +363,13 @@ const SearchesTab: FC<{
           actionButtons={[
             {
               doAction: deleteSearch,
-              title: (searchId: string) => `Delete search ${searchId}`,
+              title: (searchId: string) => `Delete search for ${searchId}`,
               ActionIcon: DeleteIcon,
+            },
+            {
+              doAction: deleteSearchData,
+              title: (searchId: string) => `Delete search data for ${searchId}`,
+              ActionIcon: ContentCutIcon,
             },
             // {
             //   doAction: editSearch,
