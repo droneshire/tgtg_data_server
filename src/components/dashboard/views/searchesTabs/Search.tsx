@@ -34,6 +34,7 @@ export const Search: FC<SearchProps> = ({
   searchId,
   region,
   numResults,
+  lastSearchTime,
   actionButtons,
   selectedSearches,
   toggleSearchSelection,
@@ -58,6 +59,12 @@ export const Search: FC<SearchProps> = ({
     "°" +
     (strLongitude.includes("-") ? "W" : "E");
   const googleMapsUrl = generateMapsUrl(strLatitude, strLongitude);
+
+  const minSearchTime = 1696118400;
+  let lastSearchDateString = new Date(lastSearchTime * 1000).toLocaleString();
+  if (!lastSearchTime || lastSearchTime < minSearchTime) {
+    lastSearchDateString = "Never";
+  }
 
   return (
     <TableRow hover>
@@ -86,6 +93,7 @@ export const Search: FC<SearchProps> = ({
       </TableCell>
       <TableCell> {region.radius + " mi"} </TableCell>
       <TableCell> {numResults || 0} </TableCell>
+      <TableCell> {lastSearchDateString} </TableCell>
       <TableCell sx={{ textAlign: "right" }}>
         <Button onClick={handleActionMenuClick}>Actions</Button>
         <Menu

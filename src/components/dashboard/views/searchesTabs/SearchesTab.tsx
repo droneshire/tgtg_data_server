@@ -173,6 +173,7 @@ const SearchActivityGroup: FC<{
               <TableCell> Lat, Long </TableCell>
               <TableCell> Radius </TableCell>
               <TableCell> Results </TableCell>
+              <TableCell> Last Successful Search </TableCell>
               <TableCell sx={{ textAlign: "right" }}>
                 <Button onClick={handleActionMenuClick}>Actions</Button>
                 <Menu
