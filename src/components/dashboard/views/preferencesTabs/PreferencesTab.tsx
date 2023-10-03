@@ -22,21 +22,19 @@ const NotificationsTab: FC<{
   return (
     <>
       <Typography variant="h6" gutterBottom>
-        Email
+        Delete Data on Download
       </Typography>
       <FormGroup>
-        <FirestoreBackedTextField
-          label="Email address"
-          disabled={updatingAnything}
-          docSnap={userConfigSnapshot!}
-          fieldPath="preferences.notifications.email.email"
-          variant="standard"
-          isValid={(email) => !email || isValidEmail(email)}
-          helperText={(_, validEmail) =>
-            validEmail ? "" : "Invalid email address"
+        <FormControlLabel
+          control={
+            <FirestoreBackedSwitch
+              disabled={updatingAnything}
+              docSnap={userConfigSnapshot!}
+              fieldPath="preferences.deleteDataOnDownload"
+              checkBox
+            />
           }
-          sx={{ maxWidth: 300 }}
-          InputProps={{ inputComponent: EmailInput as any }}
+          label="Delete Data on Download"
         />
         <FormControlLabel
           control={
@@ -50,6 +48,12 @@ const NotificationsTab: FC<{
           label="Email updates"
         />
       </FormGroup>
+      <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
+      <FirestoreBackedTimeZoneSelect
+        disabled={updatingAnything}
+        docSnap={userConfigSnapshot!}
+        fieldPath="preferences.searchTimeZone"
+      />
     </>
   );
 };

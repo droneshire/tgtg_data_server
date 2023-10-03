@@ -235,6 +235,8 @@ const SearchesTab: FC<{
   userConfigSnapshot: DocumentSnapshot<ClientConfig>;
 }> = ({ userConfigSnapshot }) => {
   const searches = userConfigSnapshot?.data()?.searches;
+  const deleteDataOnDownload =
+    userConfigSnapshot?.data()?.preferences?.deleteDataOnDownload;
   const [modalOpen, setModalOpen] = useState(false);
 
   if (!searches) {
@@ -262,11 +264,15 @@ const SearchesTab: FC<{
   };
 
   const emailSearch = (searchId: string) => {
-    updateDoc(
-      userConfigSnapshot.ref,
-      new FieldPath("searches", "items", searchId, "sendEmail"),
-      true
-    );
+    const fieldsToUpdate: Record<string, any> = {};
+
+    fieldsToUpdate["searches.items." + searchId + ".sendEmail"] = true;
+
+    if (deleteDataOnDownload) {
+      fieldsToUpdate["searches.items." + searchId + ".eraseData"] = true;
+    }
+
+    updateDoc(userConfigSnapshot.ref, fieldsToUpdate);
   };
 
   const editSearch = (searchId: string) => {};
@@ -294,6 +300,32 @@ const SearchesTab: FC<{
   const scaleValue = (value: number) => {
     return hourDivisors[value];
   };
+
+  const actionButtons = [
+    {
+      doAction: deleteSearch,
+      title: (searchId: string) => `Delete search for ${searchId}`,
+      ActionIcon: DeleteIcon,
+    },
+    // {
+    //   doAction: editSearch,
+    //   title: (searchId: string) => `Edit search ${searchId}`,
+    //   ActionIcon: EditIcon,
+    // },
+    {
+      doAction: emailSearch,
+      title: (searchId: string) => `Email Data for ${searchId}`,
+      ActionIcon: AttachEmailIcon,
+    },
+  ];
+
+  if (!!!deleteDataOnDownload) {
+    actionButtons.push({
+      doAction: deleteSearchData,
+      title: (searchId: string) => `Delete search data for ${searchId}`,
+      ActionIcon: ContentCutIcon,
+    });
+  }
 
   return (
     <>
@@ -361,28 +393,7 @@ const SearchesTab: FC<{
         </Box>
         <SearchActivityGroup
           items={searchItems}
-          actionButtons={[
-            {
-              doAction: deleteSearch,
-              title: (searchId: string) => `Delete search for ${searchId}`,
-              ActionIcon: DeleteIcon,
-            },
-            {
-              doAction: deleteSearchData,
-              title: (searchId: string) => `Delete search data for ${searchId}`,
-              ActionIcon: ContentCutIcon,
-            },
-            // {
-            //   doAction: editSearch,
-            //   title: (searchId: string) => `Edit search ${searchId}`,
-            //   ActionIcon: EditIcon,
-            // },
-            {
-              doAction: emailSearch,
-              title: (searchId: string) => `Email Data for ${searchId}`,
-              ActionIcon: AttachEmailIcon,
-            },
-          ]}
+          actionButtons={actionButtons}
         />
       </Box>
       <Box textAlign="right" sx={{ marginTop: 2 }}>

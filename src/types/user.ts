@@ -42,6 +42,7 @@ export interface Preferences {
       updatesEnabled: boolean;
     };
   };
+  deleteDataOnDownload: boolean;
   searchTimeZone: SearchTimeZone;
 }
 
@@ -52,6 +53,7 @@ export interface ClientConfig {
 
 export const DEFAULT_USER_CONFIG: ClientConfig = {
   preferences: {
+    deleteDataOnDownload: false,
     notifications: {
       email: { email: "", updatesEnabled: true },
     },
