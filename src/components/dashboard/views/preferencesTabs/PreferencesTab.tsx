@@ -22,7 +22,7 @@ const NotificationsTab: FC<{
   return (
     <>
       <Typography variant="h6" gutterBottom>
-        Delete Data on Download
+        Preferences
       </Typography>
       <FormGroup>
         <FormControlLabel
