@@ -41,6 +41,17 @@ const NotificationsTab: FC<{
             <FirestoreBackedSwitch
               disabled={updatingAnything}
               docSnap={userConfigSnapshot!}
+              fieldPath="preferences.storeRawData"
+              checkBox
+            />
+          }
+          label="Store raw data (large files, use with caution)"
+        />
+        <FormControlLabel
+          control={
+            <FirestoreBackedSwitch
+              disabled={updatingAnything}
+              docSnap={userConfigSnapshot!}
               fieldPath="preferences.notifications.email.updatesEnabled"
               checkBox
             />
