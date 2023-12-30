@@ -1,38 +1,15 @@
-import React, { FC, useState, useEffect } from "react";
-import {
-  Typography,
-  Divider,
-  FormGroup,
-  Tooltip,
-  Box,
-  Menu,
-  Button,
-  Fade,
-  MenuItem,
-} from "@mui/material";
+import { FC, useState } from "react";
+import { Typography, Divider, FormGroup, Box } from "@mui/material";
 import { Data } from "plotly.js";
 import Plot from "react-plotly.js";
 import CsvUploader from "./CsvUploader";
 import { StoreStats } from "workers/csvWorker";
-import { ArrowDropDown } from "@mui/icons-material";
+import StoreAnalysis from "./StoreAnalysis";
 
 const AnalysisTab: FC = () => {
   const [displayChart, setDisplayChart] = useState(false);
   const [data, setData] = useState<Data[]>([]);
   const [storeNames, setStoreNames] = useState<string[]>([]);
-  const [selectedStore, setSelectedStore] = useState<string>("");
-
-  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(
-    null
-  );
-  const openMenu = Boolean(menuAnchorEl);
-  const handleMenuButtonClick = (event: React.MouseEvent<HTMLElement>) => {
-    setMenuAnchorEl(event.currentTarget);
-  };
-  const handleMenuButtonClose = (name: string) => {
-    setMenuAnchorEl(null);
-    setSelectedStore(name);
-  };
 
   const onUpload = (storeStats: StoreStats) => {
     // storeNames and counts by alphabetical order
@@ -46,7 +23,6 @@ const AnalysisTab: FC = () => {
         marker: { color: "blue" },
       },
     ];
-    setSelectedStore("");
     setStoreNames(names);
     setData(storeData);
     setDisplayChart(true);
@@ -77,40 +53,7 @@ const AnalysisTab: FC = () => {
             />
             <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
           </Box>
-          <FormGroup>
-            <Button
-              id="fade-button"
-              aria-controls={openMenu ? "fade-menu" : undefined}
-              aria-haspopup="true"
-              aria-expanded={openMenu ? "true" : undefined}
-              onClick={handleMenuButtonClick}
-              variant="contained"
-            >
-              Select Store
-              <ArrowDropDown />
-            </Button>
-            <Menu
-              id="fade-menu-stores"
-              MenuListProps={{
-                "aria-labelledby": "fade-button",
-              }}
-              anchorEl={menuAnchorEl}
-              open={openMenu}
-              onClose={handleMenuButtonClose}
-              TransitionComponent={Fade}
-            >
-              {storeNames.map((name) => (
-                <MenuItem
-                  key={name}
-                  onClick={() => {
-                    handleMenuButtonClose(name);
-                  }}
-                >
-                  {name}
-                </MenuItem>
-              ))}
-            </Menu>
-          </FormGroup>
+          <StoreAnalysis storeNames={storeNames}></StoreAnalysis>
         </>
       )}
     </>
