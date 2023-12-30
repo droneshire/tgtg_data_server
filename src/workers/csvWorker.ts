@@ -1,9 +1,9 @@
 import Papa from "papaparse";
 
-type StoreStats = Map<string, number>; // Assuming StoreStats is a type alias for Map<string, number>
+export type StoreStats = Map<string, number>;
 
 interface CsvDataRow {
-  [key: string]: string; // or any other type that matches your data
+  [key: string]: string;
 }
 
 const parseCsv = (file: File): Promise<StoreStats> => {

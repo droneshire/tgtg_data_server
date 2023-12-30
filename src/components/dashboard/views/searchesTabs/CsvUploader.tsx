@@ -1,21 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button, CircularProgress } from "@mui/material";
-import { isValidAddress } from "utils/validators";
-import Papa from "papaparse";
-import { useAsyncAction } from "hooks/async";
+import { StoreStats } from "workers/csvWorker";
 
-export type StoreStats = Map<string, number>;
-
-interface DemographicsUploaderProps {
+interface CsvUploaderProps {
   onUpload?: (storeCount: StoreStats) => void;
 }
 
-const DemographicsUploader: React.FC<DemographicsUploaderProps> = ({
-  onUpload,
-}) => {
+const CsvUploader: React.FC<CsvUploaderProps> = ({ onUpload }) => {
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
-  const clearAfterTimeout: boolean = false;
-  const [storeNames, setStoreNames] = useState<StoreStats>(new Map());
+  const [parsing, setParsing] = useState(false);
 
   const kickOffCsvWorker = (file: File) => {
     if (window.Worker) {
@@ -24,12 +17,15 @@ const DemographicsUploader: React.FC<DemographicsUploaderProps> = ({
       worker.addEventListener("message", (e: MessageEvent) => {
         const parsedData = e.data;
         onUpload?.(parsedData);
+        setParsing(false);
       });
 
       worker.addEventListener("error", (e: ErrorEvent) => {
         console.error("Error in worker: ", e.message);
+        setParsing(false);
       });
 
+      setParsing(true);
       const reader = new FileReader();
       reader.onload = (event: ProgressEvent<FileReader>) => {
         if (event.target?.result) {
@@ -38,27 +34,10 @@ const DemographicsUploader: React.FC<DemographicsUploaderProps> = ({
       };
       reader.readAsText(file);
     } else {
+      setParsing(false);
       console.warn("Your browser does not support Web Workers.");
     }
   };
-
-  useEffect(() => {
-    if (!clearAfterTimeout) {
-      return;
-    }
-    // Only set the timeout if there are items in the address.
-    if (storeNames.entries.length > 0) {
-      const timeout = setTimeout(() => {
-        setStoreNames(new Map());
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
-      }, 30000);
-
-      // Cleanup function to clear the timeout.
-      return () => clearTimeout(timeout);
-    }
-  }, [storeNames, setStoreNames]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
@@ -72,8 +51,8 @@ const DemographicsUploader: React.FC<DemographicsUploaderProps> = ({
   return (
     <div>
       <>
-        <Button variant="contained" component="label">
-          Upload File
+        <Button variant="contained" component="label" disabled={parsing}>
+          {parsing ? <CircularProgress size={24} /> : "Upload File"}
           <input
             type="file"
             onChange={handleFileChange}
@@ -86,4 +65,4 @@ const DemographicsUploader: React.FC<DemographicsUploaderProps> = ({
   );
 };
 
-export default DemographicsUploader;
+export default CsvUploader;

@@ -1,4 +1,4 @@
-import DemographicsTab from "./DemographicsTab";
+import AnalysisTab from "./AnalysisTab";
 import ItemsSearchesTab from "./SearchesTab";
 
 const searchesTabsList = [
@@ -9,8 +9,8 @@ const searchesTabsList = [
   },
   {
     key: "demographics",
-    label: "Demographics",
-    component: DemographicsTab,
+    label: "Analysis",
+    component: AnalysisTab,
   }
 ];
 
