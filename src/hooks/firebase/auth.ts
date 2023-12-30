@@ -32,7 +32,6 @@ export const signInWithGoogle = async () => {
   try {
     const res = await signInWithPopup(getAuth(myApp), new GoogleAuthProvider());
     const user = res.user;
-    console.log("Creating new user: ", user.displayName, user.email);
   } catch (err: any) {
     console.error(err);
     alert(err.message);
@@ -55,7 +54,6 @@ export const registerWithEmailAndPassword = async (props: EmailLoginProps) => {
   try {
     const res = await createUserWithEmailAndPassword(getAuth(myApp), email, password);
     const user = res.user;
-    console.log("Creating new user: ", user.displayName, user.email);
   } catch (err: any) {
     console.error(err);
     alert(err.message);

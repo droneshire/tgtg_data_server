@@ -135,6 +135,9 @@ export const NewSearchModal: FC<SearchModalProps> = ({
   const [searchSpec, setSearchSpec] = useState<SearchSpec>(
     initialSearch || defaultSearchSpec
   );
+  useEffect(() => {
+    setSearchSpec(initialSearch || defaultSearchSpec);
+  }, [initialSearch]);
 
   const {
     runAction: doCreateSearch,

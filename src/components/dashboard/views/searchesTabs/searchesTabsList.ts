@@ -1,3 +1,4 @@
+import DemographicsTab from "./DemographicsTab";
 import ItemsSearchesTab from "./SearchesTab";
 
 const searchesTabsList = [
@@ -6,6 +7,11 @@ const searchesTabsList = [
     label: "Searches",
     component: ItemsSearchesTab,
   },
+  {
+    key: "demographics",
+    label: "Demographics",
+    component: DemographicsTab,
+  }
 ];
 
 export default searchesTabsList;

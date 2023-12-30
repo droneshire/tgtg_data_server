@@ -24,7 +24,7 @@ import AttachEmailIcon from "@mui/icons-material/AttachEmail";
 import ContentCutIcon from "@mui/icons-material/ContentCut";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import { ClientConfig, hourDivisors } from "types/user";
+import { ClientConfig, Region, hourDivisors } from "types/user";
 import { Box } from "@mui/system";
 import {
   FontAwesomeIcon,
@@ -238,10 +238,22 @@ const SearchesTab: FC<{
   const deleteDataOnDownload =
     userConfigSnapshot?.data()?.preferences?.deleteDataOnDownload;
   const [modalOpen, setModalOpen] = useState(false);
+  const defaultSearchSpec: SearchSpec = {
+    region: { latitude: 0, longitude: 0, radius: 0 },
+    searchId: "",
+    sendEmail: false,
+    eraseData: false,
+    lastSearchTime: 0,
+    lastDownloadTime: 0,
+    numResults: 0,
+  };
+  const [initialSearchSpec, setInitialSearchSpec] =
+    useState<SearchSpec>(defaultSearchSpec);
 
   if (!searches) {
     return <CircularProgress />;
   }
+
   const existingsearchIds = useMemo(
     () => Object.keys(searches?.items || {}),
     [searches]
@@ -275,7 +287,19 @@ const SearchesTab: FC<{
     updateDoc(userConfigSnapshot.ref, fieldsToUpdate);
   };
 
-  const editSearch = (searchId: string) => {};
+  const editSearch = (searchId: string) => {
+    const searchSpec = searchItems.find((item) => item.searchId === searchId);
+    if (!searchSpec) {
+      return;
+    }
+    setInitialSearchSpec(searchSpec);
+  };
+
+  useEffect(() => {
+    if (initialSearchSpec.searchId !== "") {
+      setModalOpen(true);
+    }
+  }, [initialSearchSpec]);
 
   const deleteSearchData = (searchId: string) => {
     updateDoc(
@@ -307,11 +331,11 @@ const SearchesTab: FC<{
       title: (searchId: string) => `Delete search for ${searchId}`,
       ActionIcon: DeleteIcon,
     },
-    // {
-    //   doAction: editSearch,
-    //   title: (searchId: string) => `Edit search ${searchId}`,
-    //   ActionIcon: EditIcon,
-    // },
+    {
+      doAction: editSearch,
+      title: (searchId: string) => `Edit search ${searchId}`,
+      ActionIcon: EditIcon,
+    },
     {
       doAction: emailSearch,
       title: (searchId: string) => `Email Data for ${searchId}`,
@@ -405,7 +429,10 @@ const SearchesTab: FC<{
       </Box>
       <NewSearchModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setInitialSearchSpec(defaultSearchSpec);
+          setModalOpen(false);
+        }}
         existingsearchIds={existingsearchIds}
         createSearch={(SearchProps) => {
           const { searchId, ...item } = SearchProps;
@@ -415,7 +442,7 @@ const SearchesTab: FC<{
             item
           );
         }}
-        initialSearch={null}
+        initialSearch={initialSearchSpec}
       />
     </>
   );

@@ -42,6 +42,7 @@ import {
   getMinutesFromMidnight,
 } from "utils/time";
 import { NestedKeyOf } from "utils/generics";
+import shallowEqual from "utils/comparisons";
 
 interface FirestoreBackedSwitchProps<DocType extends object>
   extends SwitchProps {
@@ -555,18 +556,18 @@ export function FirestoreBackedTimeZoneSelect<DocType extends object>({
   disabled,
   ...props
 }: FirestoreBackedTimeZoneProps<DocType>) {
-  const savedValue =
-    docSnap.get(fieldPath) ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const defaultTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const savedValue = docSnap.get(fieldPath) ?? defaultTimeZone;
   const [value, setValue] = useState(savedValue);
   const { runAction: update, running: updating } = useAsyncAction(
     (enabled: number) => updateDoc(docSnap.ref, fieldPath, enabled)
   );
 
   useEffect(() => {
-    if (!updating) {
+    if (!updating && !shallowEqual(savedValue, value)) {
       setValue(savedValue);
     }
-  }, [savedValue, updating]);
+  }, [savedValue, updating, value]);
 
   return (
     <>
