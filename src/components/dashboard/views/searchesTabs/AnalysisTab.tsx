@@ -1,15 +1,30 @@
-import { FC, useState } from "react";
+import { FC, useMemo, useState } from "react";
 import { Typography, Divider, FormGroup, Box } from "@mui/material";
 import CsvDataUploader, { DataMaps } from "./CsvDataUploader";
 import { CsvDataRow } from "workers/csvWorker";
 import DataAnalysis from "./DataAnalysis";
+import { SearchSpec } from "./Search";
+import { DocumentSnapshot } from "firebase/firestore";
+import { ClientConfig } from "types/user";
 
-const AnalysisTab: FC = () => {
+const AnalysisTab: FC<{
+  userConfigSnapshot: DocumentSnapshot<ClientConfig>;
+}> = ({ userConfigSnapshot }) => {
+  const searches = userConfigSnapshot?.data()?.searches;
   const [displayChart, setDisplayChart] = useState(false);
   const [dataMaps, setDataMaps] = useState<DataMaps>({
     storeMap: new Map<string, CsvDataRow[]>(),
     dateMap: new Map<string, CsvDataRow[]>(),
   });
+
+  const searchItems: SearchSpec[] = useMemo(() => {
+    const items: SearchSpec[] = [];
+    Object.entries(searches?.items || {}).forEach((t) => {
+      const [searchId, item] = t;
+      items.push({ searchId, ...item });
+    });
+    return items;
+  }, [searches]);
 
   const onUpload = (dataMaps: DataMaps) => {
     if (!!!dataMaps) {
@@ -32,7 +47,10 @@ const AnalysisTab: FC = () => {
         that contains addresses to be analyzed.
       </Typography>
       <FormGroup>
-        <CsvDataUploader onUpload={onUpload}></CsvDataUploader>
+        <CsvDataUploader
+          onUpload={onUpload}
+          searchItems={searchItems}
+        ></CsvDataUploader>
       </FormGroup>
       <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
       {displayChart && (

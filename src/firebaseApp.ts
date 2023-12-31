@@ -1,4 +1,5 @@
 import { initializeApp } from "firebase/app";
+import {getStorage} from "firebase/storage";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -16,4 +17,6 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const myApp = initializeApp(firebaseConfig);
+export const myStorage = getStorage(myApp);
+
 export default myApp;

@@ -1,7 +1,21 @@
-import React, { useState } from "react";
-import { Alert, Button, CircularProgress, Snackbar } from "@mui/material";
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Fade,
+  Menu,
+  MenuItem,
+  Snackbar,
+  Typography,
+} from "@mui/material";
 import { CsvDataRow } from "workers/csvWorker";
 import { HEADER_TITLES } from "utils/constants";
+import { SearchSpec } from "./Search";
+import { ArrowDropDown } from "@mui/icons-material";
+import { myStorage } from "firebaseApp";
+import { ref, getDownloadURL } from "firebase/storage";
 
 export type DataMap = Map<string, CsvDataRow[]>;
 
@@ -12,6 +26,7 @@ export interface DataMaps {
 
 interface CsvUploaderProps {
   onUpload?: (dataMaps: DataMaps) => void;
+  searchItems: SearchSpec[];
 }
 
 const transformData = (data: CsvDataRow[]): DataMaps => {
@@ -57,14 +72,47 @@ const transformData = (data: CsvDataRow[]): DataMaps => {
   return { storeMap, dateMap };
 };
 
-const CsvDataUploader: React.FC<CsvUploaderProps> = ({ onUpload }) => {
-  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+const CsvDataUploader: React.FC<CsvUploaderProps> = ({
+  onUpload,
+  searchItems,
+}) => {
   const [parsing, setParsing] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
 
-  const handleClose = () => {
+  // Firebase Storage related items
+  const [selectedItem, setSelectedItem] = useState("");
+  const [fireStoreData, setFireStoreData] = useState("");
+  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(
+    null
+  );
+  const openMenu = Boolean(menuAnchorEl);
+
+  const handleMenuItemClick = (name: string) => () => {
+    handleMenuButtonClose(name);
+  };
+
+  const handleMenuButtonClick = (event: React.MouseEvent<HTMLElement>) => {
+    setMenuAnchorEl(event.currentTarget);
+  };
+  const handleMenuButtonClose = (name: string) => {
+    setMenuAnchorEl(null);
+    console.log("Selected search: ", name);
+    setSelectedItem(name);
+  };
+
+  const handleAlertClose = () => {
     setAlertOpen(false);
   };
+
+  const readFireStoreCsv = useCallback(async (url: string) => {
+    try {
+      const response = await fetch(url);
+      const text = await response.text();
+      setFireStoreData(text);
+    } catch (error) {
+      console.error("Error reading firststore file:", error);
+    }
+  }, []);
 
   const kickOffCsvWorker = (file: File) => {
     if (window.Worker) {
@@ -74,6 +122,8 @@ const CsvDataUploader: React.FC<CsvUploaderProps> = ({ onUpload }) => {
         const data = e.data;
         const parsedData = transformData(data);
         setParsing(false);
+        setFireStoreData("");
+        setSelectedItem("");
 
         if (parsedData.storeMap.size === 0) {
           alert("No data found in file.");
@@ -89,13 +139,17 @@ const CsvDataUploader: React.FC<CsvUploaderProps> = ({ onUpload }) => {
       });
 
       setParsing(true);
-      const reader = new FileReader();
-      reader.onload = (event: ProgressEvent<FileReader>) => {
-        if (event.target?.result) {
-          worker.postMessage(event.target.result.toString());
-        }
-      };
-      reader.readAsText(file);
+      if (fireStoreData === "") {
+        const reader = new FileReader();
+        reader.onload = (event: ProgressEvent<FileReader>) => {
+          if (event.target?.result) {
+            worker.postMessage(event.target.result.toString());
+          }
+        };
+        reader.readAsText(file);
+      } else {
+        worker.postMessage(fireStoreData);
+      }
     } else {
       setParsing(false);
       console.warn("Your browser does not support Web Workers.");
@@ -111,24 +165,80 @@ const CsvDataUploader: React.FC<CsvUploaderProps> = ({ onUpload }) => {
     }
   };
 
+  useEffect(() => {
+    if (selectedItem !== "") {
+      console.log("Downloading file from firestore");
+      const pathToStorageFile =
+        "lsz.tgtg@gmail.com/tgtg_search_23a66bdf2e28ab1424c91bbf057adcba/116206.csv";
+      const fileRef = ref(myStorage, pathToStorageFile);
+      getDownloadURL(fileRef)
+        .then((url) => {
+          readFireStoreCsv(url);
+        })
+        .catch((error) => {
+          console.error("Error downloading file:", error);
+        });
+    }
+  }, [selectedItem, readFireStoreCsv]);
+
+  useEffect(() => {
+    if (fireStoreData !== "") {
+      kickOffCsvWorker(new File([fireStoreData], "firestore.csv"));
+    }
+  }, [fireStoreData]);
+
   return (
     <div>
       <>
-        <Button variant="contained" component="label" disabled={parsing}>
-          {parsing ? <CircularProgress size={24} /> : "Upload File"}
-          <input
-            type="file"
-            onChange={handleFileChange}
-            ref={fileInputRef}
-            hidden
-          />
-        </Button>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Button variant="contained" component="label" disabled={parsing}>
+            {parsing ? <CircularProgress size={24} /> : "Upload File"}
+            <input type="file" onChange={handleFileChange} hidden />
+          </Button>
+          <Typography variant="body1" gutterBottom>
+            or
+          </Typography>
+          <Button
+            id="fade-button"
+            aria-controls={openMenu ? "fade-menu" : undefined}
+            aria-haspopup="true"
+            aria-expanded={openMenu ? "true" : undefined}
+            onClick={handleMenuButtonClick}
+            variant="contained"
+            disabled={parsing}
+          >
+            {parsing ? <CircularProgress size={24} /> : "Select Search"}
+            <ArrowDropDown />
+          </Button>
+        </Box>
+        <Menu
+          id="fade-menu-stores"
+          MenuListProps={{
+            "aria-labelledby": "fade-button",
+          }}
+          anchorEl={menuAnchorEl}
+          open={openMenu}
+          onClose={() => {
+            handleMenuButtonClose("");
+          }}
+          TransitionComponent={Fade}
+        >
+          {searchItems.map((item, index) => (
+            <MenuItem key={index} onClick={handleMenuItemClick(item.searchId)}>
+              {item.searchId}
+            </MenuItem>
+          ))}
+        </Menu>
         <Snackbar
           open={alertOpen}
           autoHideDuration={5000}
-          onClose={handleClose}
+          onClose={handleAlertClose}
         >
-          <Alert onClose={handleClose} severity="error" sx={{ width: "100%" }}>
+          <Alert
+            onClose={handleAlertClose}
+            severity="error"
+            sx={{ width: "100%" }}
+          >
             Unable to parse file
           </Alert>
         </Snackbar>
