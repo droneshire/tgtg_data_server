@@ -11,8 +11,9 @@ import {
   Typography,
 } from "@mui/material";
 import Plot from "react-plotly.js";
-import { Data } from "plotly.js";
+import { Data, Layout } from "plotly.js";
 import { DataMap, DataMaps } from "./CsvDataUploader";
+import { CsvDataRow } from "workers/csvWorker";
 
 interface StoreAnalysisProps {
   dataMaps: DataMaps;
@@ -22,9 +23,8 @@ interface StoreCountsProps {
   storeMap: DataMap;
 }
 
-interface StoreUsageTimeProps {
+interface StoreUsageTimeProps extends StoreAnalysisProps {
   name: string;
-  dateMap: DataMap;
 }
 
 const StoreCounts: React.FC<StoreCountsProps> = (props) => {
@@ -64,15 +64,78 @@ const StoreCounts: React.FC<StoreCountsProps> = (props) => {
   );
 };
 
-const StoreUsageTime: React.FC<StoreUsageTimeProps> = (props) => {
-  const { name, dateMap } = props;
+const StoreUsageTime: React.FC<StoreUsageTimeProps> = ({ name, dataMaps }) => {
+  const { storeMap, dateMap } = dataMaps;
+  const [data, setData] = useState<Data[]>([]);
+  const [layout, setLayout] = useState<any>({
+    autosize: true,
+    title: "Daily Listings for " + name + "",
+    xaxis: {
+      title: "Date",
+      tickangle: -45,
+      automargin: true,
+    },
+    yaxis: {
+      title: "Listings",
+    },
+  });
+
+  if (!name || !dateMap) {
+    return <></>;
+  }
+
+  useEffect(() => {
+    const dataList = storeMap.get(name);
+    const dates: string[] = Array.from(dateMap.keys()).sort();
+    const counts = dates.map((date) => {
+      // Count occurrences for each date
+      return (
+        dataList?.filter((data) => {
+          // Extract just the date part from the timestamp
+          const timestampDate = data["timestamp"].split(" ")[0]; // Assuming 'YYYY-MM-DD' format
+          return timestampDate === date;
+        }).length || 0
+      );
+    });
+    const storeData: Data[] = [
+      {
+        x: dates,
+        y: counts,
+        type: "scatter",
+        mode: "lines+markers",
+        marker: { color: "blue" },
+      },
+    ];
+
+    setData(storeData);
+
+    const maxYValue = Math.max(...counts);
+    console.log("maxYValue: " + maxYValue, counts, dataList);
+    const margin = maxYValue * 0.1;
+    const storeLayout = {
+      ...layout, // Extend the existing layout object
+      yaxis: {
+        title: "Listings",
+        range: [0, maxYValue + margin],
+      },
+    };
+    setLayout(storeLayout);
+  }, [name, storeMap, dateMap]);
 
   return (
     <>
       <Typography variant="h6" gutterBottom>
         {name}
       </Typography>
-      <Typography variant="body1">Number of days: {dateMap.size}</Typography>
+      <Box sx={{ height: "100%", width: "100%", overflowX: "auto" }}>
+        <Plot
+          data={data}
+          layout={layout}
+          useResizeHandler={true}
+          style={{ width: "100%", height: "100%" }}
+        />
+        <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
+      </Box>
     </>
   );
 };
@@ -122,7 +185,9 @@ const StoreAnalysis: React.FC<StoreAnalysisProps> = ({ dataMaps }) => {
           }}
           anchorEl={menuAnchorEl}
           open={openMenu}
-          onClose={handleMenuButtonClose}
+          onClose={() => {
+            handleMenuButtonClose("");
+          }}
           TransitionComponent={Fade}
         >
           {storeNames.map((name, index) => (
@@ -139,7 +204,10 @@ const StoreAnalysis: React.FC<StoreAnalysisProps> = ({ dataMaps }) => {
         <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
         <Box sx={{ height: "100%", width: "100%", overflowX: "auto" }}>
           {selectedStore && (
-            <StoreUsageTime name={selectedStore} dateMap={dateMap} />
+            <StoreUsageTime
+              name={selectedStore}
+              dataMaps={{ storeMap, dateMap }}
+            />
           )}
         </Box>
       </FormGroup>
