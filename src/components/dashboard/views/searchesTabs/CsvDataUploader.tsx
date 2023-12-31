@@ -22,6 +22,10 @@ const transformData = (data: CsvDataRow[]): DataMaps => {
     const storeName = row[HEADER_TITLES.storeName];
     const timestamp = row[HEADER_TITLES.timeStamp];
 
+    if (!storeName || !timestamp) {
+      return;
+    }
+
     // grab the date from the timestamp
     const date = timestamp.split(" ")[0];
 
@@ -42,7 +46,7 @@ const transformData = (data: CsvDataRow[]): DataMaps => {
     storeMap.get(storeName).push(rowData);
     dateMap.get(date).push(rowData);
   });
-
+  console.log("storeMap: ", storeMap);
   return { storeMap, dateMap };
 };
 

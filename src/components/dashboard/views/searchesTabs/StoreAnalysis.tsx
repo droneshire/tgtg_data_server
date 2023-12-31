@@ -185,8 +185,86 @@ const StorePriceDistribution: React.FC<IndividualStoreProps> = ({
   );
 };
 
+const AllMealTypes: React.FC<StoreCountsProps> = ({ storeMap }) => {
+  const [dataTypes, setDataTypes] = useState<Data[]>([]);
+  const [dataCategories, setDataCategories] = useState<Data[]>([]);
+  if (!storeMap) {
+    return <></>;
+  }
+
+  useEffect(() => {
+    const mealTypes: string[] = [];
+    const mealCategories: string[] = [];
+
+    storeMap.forEach((value, key) => {
+      value.forEach((entry) => {
+        mealTypes.push(entry[HEADER_TITLES.mealType]);
+        mealCategories.push(entry[HEADER_TITLES.mealCategory]);
+      });
+    });
+
+    const mealTypeData: Data[] = [
+      {
+        labels: mealTypes,
+        type: "pie",
+      },
+    ];
+    const mealCategoryData: Data[] = [
+      {
+        labels: mealCategories,
+        type: "pie",
+      },
+    ];
+
+    setDataTypes(mealTypeData);
+    setDataCategories(mealCategoryData);
+  }, [storeMap]);
+
+  return (
+    <>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "stretch",
+          width: "100%",
+          height: "500px",
+          overflowX: "auto",
+        }}
+      >
+        <Box sx={{ flex: 1, paddingRight: 1, height: "100%" }}>
+          <Plot
+            data={dataTypes}
+            layout={{
+              autosize: true,
+              title: "Meal Types",
+            }}
+            useResizeHandler={true}
+            style={{ width: "100%", height: "100%" }}
+          />
+        </Box>
+
+        <Box sx={{ flex: 1, paddingLeft: 1, height: "100%" }}>
+          <Plot
+            data={dataCategories}
+            layout={{
+              autosize: true,
+              title: "Meal Categories",
+            }}
+            useResizeHandler={true}
+            style={{ width: "100%", height: "100%" }}
+          />
+        </Box>
+
+        <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
+      </Box>
+    </>
+  );
+};
+
 const StorePlots: React.FC<IndividualStoreProps> = (props) => {
   const { name, dataMaps } = props;
+  const { storeMap } = dataMaps;
   return (
     <>
       <Typography variant="h6" gutterBottom>
@@ -224,6 +302,7 @@ const StoreAnalysis: React.FC<StoreAnalysisProps> = ({ dataMaps }) => {
   return (
     <>
       <StoreCounts storeMap={storeMap} />
+      <AllMealTypes storeMap={storeMap} />
       <FormGroup>
         <Button
           id="fade-button"

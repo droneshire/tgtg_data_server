@@ -6,4 +6,6 @@ export const HEADER_TITLES = {
     storeName: "store_name",
     timeStamp: "timestamp",
     priceIncludingTax: "price_including_taxes",
+    mealType: "item_type",
+    mealCategory: "item_category",
 };
