@@ -3,7 +3,6 @@ import { ArrowDropDown } from "@mui/icons-material";
 import {
   Box,
   Button,
-  Divider,
   Fade,
   FormGroup,
   Menu,
@@ -138,7 +137,7 @@ const StoreSelector: React.FC<StoreSelectorProps> = (props) => {
   );
 };
 
-const StoreAnalysis: React.FC<AllStoreProps> = ({ dataMaps }) => {
+const DataAnalysis: React.FC<AllStoreProps> = ({ dataMaps }) => {
   const { storeMap, dateMap } = dataMaps;
   const [selectedStore, setSelectedStore] = useState<string>("");
   const [storeNames, setStoreNames] = useState<string[]>([]);
@@ -164,4 +163,4 @@ const StoreAnalysis: React.FC<AllStoreProps> = ({ dataMaps }) => {
   );
 };
 
-export default StoreAnalysis;
+export default DataAnalysis;

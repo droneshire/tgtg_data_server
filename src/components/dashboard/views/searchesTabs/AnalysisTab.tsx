@@ -2,7 +2,7 @@ import { FC, useState } from "react";
 import { Typography, Divider, FormGroup, Box } from "@mui/material";
 import CsvDataUploader, { DataMaps } from "./CsvDataUploader";
 import { CsvDataRow } from "workers/csvWorker";
-import StoreAnalysis from "./StoreAnalysis";
+import DataAnalysis from "./DataAnalysis";
 
 const AnalysisTab: FC = () => {
   const [displayChart, setDisplayChart] = useState(false);
@@ -37,7 +37,7 @@ const AnalysisTab: FC = () => {
       <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
       {displayChart && (
         <>
-          <StoreAnalysis dataMaps={dataMaps}></StoreAnalysis>
+          <DataAnalysis dataMaps={dataMaps}></DataAnalysis>
         </>
       )}
     </>
