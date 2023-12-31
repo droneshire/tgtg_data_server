@@ -177,6 +177,8 @@ const CsvDataUploader: React.FC<CsvUploaderProps> = ({
         })
         .catch((error) => {
           setAlertOpen(true);
+          setSelectedItem("");
+          setFireStoreData("");
           console.error("Error downloading file:", error);
         });
     }
