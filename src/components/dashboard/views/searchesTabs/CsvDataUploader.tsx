@@ -1,12 +1,54 @@
 import React, { useState } from "react";
 import { Button, CircularProgress } from "@mui/material";
-import { StoreStats } from "workers/csvWorker";
+import { CsvDataRow } from "workers/csvWorker";
 
-interface CsvUploaderProps {
-  onUpload?: (storeCount: StoreStats) => void;
+export type DataMap = Map<string, CsvDataRow[]>;
+
+export interface DataMaps {
+  storeMap: DataMap;
+  dateMap: DataMap;
 }
 
-const CsvUploader: React.FC<CsvUploaderProps> = ({ onUpload }) => {
+interface CsvUploaderProps {
+  onUpload?: (dataMaps: DataMaps) => void;
+}
+
+const storeNameKey = "store_name";
+const dateNameKey = "timestamp";
+
+const transformData = (data: CsvDataRow[]): DataMaps => {
+  const storeMap = new Map();
+  const dateMap = new Map();
+
+  data.forEach((row) => {
+    const storeName = row[storeNameKey];
+    const timestamp = row[dateNameKey];
+
+    // grab the date from the timestamp
+    const date = timestamp.split(" ")[0];
+
+    // Create a new entry if the store name doesn't exist in the map
+    if (!storeMap.has(storeName)) {
+      storeMap.set(storeName, []);
+    }
+
+    // Create a new entry if the date doesn't exist in the map
+    if (!dateMap.has(date)) {
+      dateMap.set(date, []);
+    }
+
+    // Clone the row data to avoid modifying the original data
+    const rowData = { ...row };
+
+    // Add this occurrence to the store's array
+    storeMap.get(storeName).push(rowData);
+    dateMap.get(date).push(rowData);
+  });
+
+  return { storeMap, dateMap };
+};
+
+const CsvDataUploader: React.FC<CsvUploaderProps> = ({ onUpload }) => {
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
   const [parsing, setParsing] = useState(false);
 
@@ -15,7 +57,9 @@ const CsvUploader: React.FC<CsvUploaderProps> = ({ onUpload }) => {
       const worker = new Worker(new URL("workers/csvWorker", import.meta.url));
 
       worker.addEventListener("message", (e: MessageEvent) => {
-        const parsedData = e.data;
+        const data = e.data;
+        const parsedData = transformData(data);
+
         onUpload?.(parsedData);
         setParsing(false);
       });
@@ -65,4 +109,4 @@ const CsvUploader: React.FC<CsvUploaderProps> = ({ onUpload }) => {
   );
 };
 
-export default CsvUploader;
+export default CsvDataUploader;

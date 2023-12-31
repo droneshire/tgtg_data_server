@@ -1,12 +1,11 @@
 import Papa from "papaparse";
 
-export type StoreStats = Map<string, number>;
-
-interface CsvDataRow {
+export interface CsvDataRow {
   [key: string]: string;
 }
 
-const parseCsv = (file: File): Promise<StoreStats> => {
+
+const parseCsv = (file: File): Promise<CsvDataRow[]> => {
   return new Promise((resolve, reject) => {
     const headerTitle = "store_name";
 
@@ -21,16 +20,7 @@ const parseCsv = (file: File): Promise<StoreStats> => {
         }
 
         const data = results.data as CsvDataRow[];
-
-        const combinedDataMap: StoreStats = data.reduce<StoreStats>((accumulator, element) => {
-          const id = element[headerTitle];
-          if (id !== undefined && id !== "") {
-            accumulator.set(id, (accumulator.get(id) || 0) + 1);
-          }
-          return accumulator;
-        }, new Map());
-
-        resolve(combinedDataMap);
+        resolve(data);
       }
     });
   });
