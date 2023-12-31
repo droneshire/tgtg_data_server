@@ -463,7 +463,7 @@ const StorePlots: React.FC<IndividualStoreProps> = (props) => {
   return (
     <>
       <Typography variant="h6" gutterBottom>
-        {name} Analysis
+        "{name}" Analysis
       </Typography>
       <StoreUsageTime name={name} dataMaps={dataMaps} />
       <StorePriceDistribution name={name} dataMaps={dataMaps} />
@@ -507,6 +507,7 @@ const StoreAnalysis: React.FC<StoreAnalysisProps> = ({ dataMaps }) => {
       <StoreCounts storeMap={storeMap} />
       <AllMealTypes storeMap={storeMap} />
       <PriceDistribution name="All Stores" dataList={dataList} />
+      <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
       <FormGroup>
         <Button
           id="fade-button"
@@ -542,8 +543,15 @@ const StoreAnalysis: React.FC<StoreAnalysisProps> = ({ dataMaps }) => {
             </MenuItem>
           ))}
         </Menu>
-        <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
-        <Box sx={{ height: "100%", width: "100%", overflowX: "auto" }}>
+        <Box
+          sx={{
+            height: "100%",
+            width: "100%",
+            overflowX: "auto",
+            marginTop: 2,
+            marginBottom: 4,
+          }}
+        >
           {selectedStore && (
             <StorePlots name={selectedStore} dataMaps={{ storeMap, dateMap }} />
           )}
