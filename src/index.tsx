@@ -17,15 +17,14 @@ const mdTheme = createTheme({
   },
   components: {
     MuiLink: {
-      // TODO: figure out how to avoid `as any` here
       defaultProps: {
-        component: LinkBehavior,
-      } as any,
+        component: LinkBehavior as React.ElementType,
+      },
     },
     MuiListItemButton: {
       defaultProps: {
-        component: LinkBehavior,
-      } as any,
+        component: LinkBehavior as React.ElementType,
+      },
     },
   },
 });

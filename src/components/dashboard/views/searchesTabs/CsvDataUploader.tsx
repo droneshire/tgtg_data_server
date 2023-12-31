@@ -46,7 +46,6 @@ const transformData = (data: CsvDataRow[]): DataMaps => {
     storeMap.get(storeName).push(rowData);
     dateMap.get(date).push(rowData);
   });
-  console.log("storeMap: ", storeMap);
   return { storeMap, dateMap };
 };
 

@@ -8,4 +8,6 @@ export const HEADER_TITLES = {
     priceIncludingTax: "price_including_taxes",
     mealType: "item_type",
     mealCategory: "item_category",
+    longitude: "pickup_location:location:longitude",
+    latitude: "pickup_location:location:latitude",
 };
