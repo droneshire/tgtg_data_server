@@ -222,7 +222,6 @@ export const StoreDemographics: React.FC<IndividualStoreProps> = ({
 }) => {
   const theme = useTheme();
   const mainColor = theme.palette.primary.main;
-  const secondaryColor = theme.palette.secondary.main;
   const { storeMap } = dataMaps;
 
   const [itemsListed, setItemsListed] = useState<number>(0);
@@ -260,7 +259,7 @@ export const StoreDemographics: React.FC<IndividualStoreProps> = ({
       <Box sx={{ height: "100%", width: "100%", overflowX: "auto" }}>
         <TableContainer component={Paper} variant="outlined">
           <Table>
-            <TableHead style={{ backgroundColor: secondaryColor }}>
+            <TableHead style={{ backgroundColor: mainColor }}>
               <TableRow
                 sx={{
                   marginLeft: "1rem",
