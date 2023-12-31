@@ -22,6 +22,14 @@ const transformData = (data: CsvDataRow[]): DataMaps => {
     const storeName = row[HEADER_TITLES.storeName];
     const timestamp = row[HEADER_TITLES.timeStamp];
 
+    // make sure the row has the required fields from HEADER_TITLES
+    Object.entries(HEADER_TITLES).forEach(([key, value]) => {
+      const title = key;
+      if (!row[title]) {
+        return;
+      }
+    });
+
     if (!storeName || !timestamp) {
       return;
     }
