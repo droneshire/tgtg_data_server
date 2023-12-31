@@ -156,6 +156,63 @@ const StoreCounts: React.FC<StoreMapProps> = (props) => {
   );
 };
 
+const StoreRating: React.FC<IndividualStoreProps> = ({ name, dataMaps }) => {
+  const { storeMap } = dataMaps;
+  const [data, setData] = useState<PlotData>({
+    data: [],
+    layout: {},
+  });
+
+  useEffect(() => {
+    const dataList = storeMap.get(name);
+    const ratings = (
+      dataList?.map((data) => {
+        const rating = data[HEADER_TITLES.rating];
+        return rating ? parseFloat(rating) : NaN;
+      }) || []
+    ).filter((rating) => !isNaN(rating));
+
+    if (ratings.length === 0) {
+      return;
+    }
+
+    const averageRating = ratings.reduce((a, b) => a + b) / ratings.length;
+    const storeData: Data[] = [
+      {
+        domain: { x: [0, 1], y: [0, 1] },
+        value: averageRating,
+        title: { text: "Average Overall Store Rating" },
+        type: "indicator",
+        mode: "gauge+number+delta",
+        delta: { reference: 3.0 },
+        gauge: { axis: { range: [0.0, 5.0] } },
+      },
+    ];
+
+    const storeLayout = { width: 600, height: 400 };
+
+    setData({ data: storeData, layout: storeLayout });
+  }, [name, storeMap]);
+
+  return (
+    <>
+      <Box
+        sx={{
+          height: "100%",
+          width: "100%",
+          overflowX: "auto",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Plot data={data.data} layout={data.layout} useResizeHandler={true} />
+        <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
+      </Box>
+    </>
+  );
+};
+
 const StoreUsageTime: React.FC<IndividualStoreProps> = ({ name, dataMaps }) => {
   const theme = useTheme();
   const mainColor = theme.palette.primary.main;
@@ -406,10 +463,11 @@ const StorePlots: React.FC<IndividualStoreProps> = (props) => {
   return (
     <>
       <Typography variant="h6" gutterBottom>
-        {name}
+        {name} Analysis
       </Typography>
       <StoreUsageTime name={name} dataMaps={dataMaps} />
       <StorePriceDistribution name={name} dataMaps={dataMaps} />
+      <StoreRating name={name} dataMaps={dataMaps} />
     </>
   );
 };

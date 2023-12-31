@@ -10,4 +10,5 @@ export const HEADER_TITLES = {
     mealCategory: "item_category",
     longitude: "pickup_location:location:longitude",
     latitude: "pickup_location:location:latitude",
+    rating: "average_overall_rating:average_overall_rating",
 };
