@@ -32,7 +32,7 @@ interface DistributionProps {
   dataList: CsvDataRow[];
 }
 
-interface StoreCountsProps {
+interface StoreMapProps {
   storeMap: DataMap;
 }
 
@@ -40,7 +40,84 @@ interface IndividualStoreProps extends StoreAnalysisProps {
   name: string;
 }
 
-const StoreCounts: React.FC<StoreCountsProps> = (props) => {
+interface PlotData {
+  data: Data[];
+  layout: any;
+}
+
+const StoreMaps: React.FC<StoreMapProps> = ({ storeMap }) => {
+  const theme = useTheme();
+  const mainColor = theme.palette.primary.main;
+  const [data, setData] = useState<PlotData>({
+    data: [],
+    layout: {},
+  });
+
+  useEffect(() => {
+    const names: string[] = Array.from(storeMap.keys()).sort();
+    const counts: number[] = names.map((name) => {
+      const dataList = storeMap.get(name);
+      return dataList ? dataList.length : 0;
+    });
+    const zippedArray: string[] = names.map(
+      (name, index) => `${name} (${counts[index]})`
+    );
+    const defaultLatitude =
+      storeMap.values().next().value[0][HEADER_TITLES.latitude] || 38;
+    const defaultLongitude =
+      storeMap.values().next().value[0][HEADER_TITLES.longitude] || -90;
+
+    const scaleFactor: number = 0.5;
+    const dataLocal: Data[] = [
+      {
+        type: "scattermapbox",
+        text: zippedArray,
+        lon: names.map((key) => {
+          const dataList = storeMap.get(key);
+          return dataList ? dataList[0][HEADER_TITLES.longitude] : 0;
+        }),
+        lat: names.map((key) => {
+          const dataList = storeMap.get(key);
+          return dataList ? dataList[0][HEADER_TITLES.latitude] : 0;
+        }),
+        marker: {
+          color: mainColor,
+          size: counts
+            ? counts.map((count) => Math.max(Math.sqrt(count) * scaleFactor, 1))
+            : 1,
+        },
+      },
+    ];
+    const layoutLocal = {
+      autosize: true,
+      title: "Store Locations",
+      dragmode: "zoom",
+      mapbox: {
+        style: "open-street-map",
+        center: { lat: defaultLatitude, lon: defaultLongitude },
+        zoom: 9,
+      },
+      margin: { r: 0, t: 0, b: 0, l: 0 },
+    };
+    setData({ data: dataLocal, layout: layoutLocal });
+  }, [storeMap]);
+
+  return (
+    <>
+      <Box sx={{ height: "100%", width: "100%", overflowX: "auto" }}>
+        <Plot
+          data={data.data}
+          layout={data.layout}
+          useResizeHandler={true}
+          style={{ width: "100%", height: "100%" }}
+        />
+      </Box>
+      <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
+    </>
+  );
+};
+
+const StoreCounts: React.FC<StoreMapProps> = (props) => {
   const theme = useTheme();
   const mainColor = theme.palette.primary.main;
   const { storeMap } = props;
@@ -246,7 +323,7 @@ const StorePriceDistribution: React.FC<IndividualStoreProps> = ({
   );
 };
 
-const AllMealTypes: React.FC<StoreCountsProps> = ({ storeMap }) => {
+const AllMealTypes: React.FC<StoreMapProps> = ({ storeMap }) => {
   const [dataTypes, setDataTypes] = useState<Data[]>([]);
   const [dataCategories, setDataCategories] = useState<Data[]>([]);
   if (!storeMap) {
@@ -368,6 +445,7 @@ const StoreAnalysis: React.FC<StoreAnalysisProps> = ({ dataMaps }) => {
 
   return (
     <>
+      <StoreMaps storeMap={storeMap} />
       <StoreCounts storeMap={storeMap} />
       <AllMealTypes storeMap={storeMap} />
       <PriceDistribution name="All Stores" dataList={dataList} />
