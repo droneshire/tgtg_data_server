@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, CircularProgress } from "@mui/material";
+import { Alert, Button, CircularProgress, Snackbar } from "@mui/material";
 import { CsvDataRow } from "workers/csvWorker";
 import { HEADER_TITLES } from "utils/constants";
 
@@ -52,6 +52,11 @@ const transformData = (data: CsvDataRow[]): DataMaps => {
 const CsvDataUploader: React.FC<CsvUploaderProps> = ({ onUpload }) => {
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
   const [parsing, setParsing] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
+
+  const handleClose = () => {
+    setAlertOpen(false);
+  };
 
   const kickOffCsvWorker = (file: File) => {
     if (window.Worker) {
@@ -60,9 +65,14 @@ const CsvDataUploader: React.FC<CsvUploaderProps> = ({ onUpload }) => {
       worker.addEventListener("message", (e: MessageEvent) => {
         const data = e.data;
         const parsedData = transformData(data);
-
-        onUpload?.(parsedData);
         setParsing(false);
+
+        if (parsedData.storeMap.size === 0) {
+          alert("No data found in file.");
+          setAlertOpen(true);
+          return;
+        }
+        onUpload?.(parsedData);
       });
 
       worker.addEventListener("error", (e: ErrorEvent) => {
@@ -105,6 +115,15 @@ const CsvDataUploader: React.FC<CsvUploaderProps> = ({ onUpload }) => {
             hidden
           />
         </Button>
+        <Snackbar
+          open={alertOpen}
+          autoHideDuration={5000}
+          onClose={handleClose}
+        >
+          <Alert onClose={handleClose} severity="error" sx={{ width: "100%" }}>
+            Unable to parse file
+          </Alert>
+        </Snackbar>
       </>
     </div>
   );

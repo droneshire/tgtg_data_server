@@ -8,6 +8,13 @@ import {
   FormGroup,
   Menu,
   MenuItem,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Typography,
 } from "@mui/material";
 import Plot from "react-plotly.js";
@@ -16,12 +23,6 @@ import { DataMap, DataMaps } from "./CsvDataUploader";
 import { CsvDataRow } from "workers/csvWorker";
 import { HEADER_TITLES } from "utils/constants";
 import { useTheme } from "@mui/material/styles";
-
-interface HistogramBounds {
-  start: number;
-  maxPrice: number;
-  size: number;
-}
 
 interface StoreAnalysisProps {
   dataMaps: DataMaps;
@@ -208,6 +209,81 @@ const StoreRating: React.FC<IndividualStoreProps> = ({ name, dataMaps }) => {
       >
         <Plot data={data.data} layout={data.layout} useResizeHandler={true} />
         <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
+      </Box>
+    </>
+  );
+};
+
+const StoreDemographics: React.FC<IndividualStoreProps> = ({
+  name,
+  dataMaps,
+}) => {
+  const theme = useTheme();
+  const mainColor = theme.palette.primary.main;
+  const secondaryColor = theme.palette.secondary.main;
+  const { storeMap } = dataMaps;
+
+  const [itemsListed, setItemsListed] = useState<number>(0);
+  const [latLongText, setLatLongText] = useState<string>("");
+
+  if (!name || !storeMap) {
+    return <></>;
+  }
+
+  useEffect(() => {
+    const dataList = storeMap.get(name);
+    if (!dataList || dataList.length === 0) {
+      return;
+    }
+    const count = dataList.length;
+    const lat = dataList[0][HEADER_TITLES.latitude];
+    const long = dataList[0][HEADER_TITLES.longitude];
+
+    const strLatitude = lat.toString();
+    const lattitudeText =
+      strLatitude.slice(0, strLatitude.indexOf(".") + 3) +
+      "°" +
+      (strLatitude.includes("-") ? "S" : "N");
+    const strLongitude = long.toString();
+    const longitudeText =
+      strLongitude.slice(0, strLongitude.indexOf(".") + 3) +
+      "°" +
+      (strLongitude.includes("-") ? "W" : "E");
+    setItemsListed(count);
+    setLatLongText(lattitudeText + ", " + longitudeText);
+  }, [name, storeMap]);
+
+  return (
+    <>
+      <Box sx={{ height: "100%", width: "100%", overflowX: "auto" }}>
+        <TableContainer component={Paper} variant="outlined">
+          <Table>
+            <TableHead style={{ backgroundColor: secondaryColor }}>
+              <TableRow
+                sx={{
+                  marginLeft: "1rem",
+                  "& > *": { textAlign: "center", border: "1px solid black" },
+                }}
+              >
+                <TableCell> Lat, Long </TableCell>
+                <TableCell> Items Listed </TableCell>
+                <TableCell> Population Tract </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow
+                sx={{
+                  marginLeft: "1rem",
+                  "& > *": { textAlign: "center", border: "1px solid black" },
+                }}
+              >
+                <TableCell> {latLongText} </TableCell>
+                <TableCell> {itemsListed} </TableCell>
+                <TableCell> 12,3545 </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Box>
     </>
   );
@@ -468,6 +544,7 @@ const StorePlots: React.FC<IndividualStoreProps> = (props) => {
       <StoreUsageTime name={name} dataMaps={dataMaps} />
       <StorePriceDistribution name={name} dataMaps={dataMaps} />
       <StoreRating name={name} dataMaps={dataMaps} />
+      <StoreDemographics name={name} dataMaps={dataMaps} />
     </>
   );
 };

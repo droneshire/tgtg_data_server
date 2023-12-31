@@ -18,6 +18,11 @@ const parseCsv = (file: File): Promise<CsvDataRow[]> => {
           console.error("Errors parsing CSV:", results.errors);
         }
 
+        if (results.errors.length > results.data.length) {
+          console.error("More errors than rows... aborting");
+          reject(results.errors);
+        }
+
         const data = results.data as CsvDataRow[];
         resolve(data);
       }

@@ -38,7 +38,7 @@ import {
   updateDoc,
   deleteField,
 } from "firebase/firestore";
-import { Search, SearchSpec, SearchProps } from "./Search";
+import { Search, SearchSpec } from "./Search";
 import { NewSearchModal } from "./SearchModal";
 import {
   FirestoreBackedSlider,
