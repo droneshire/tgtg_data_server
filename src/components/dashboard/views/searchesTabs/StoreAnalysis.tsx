@@ -14,6 +14,7 @@ import Plot from "react-plotly.js";
 import { Data, Layout } from "plotly.js";
 import { DataMap, DataMaps } from "./CsvDataUploader";
 import { CsvDataRow } from "workers/csvWorker";
+import { HEADER_TITLES } from "utils/constants";
 
 interface StoreAnalysisProps {
   dataMaps: DataMaps;
@@ -23,7 +24,7 @@ interface StoreCountsProps {
   storeMap: DataMap;
 }
 
-interface StoreUsageTimeProps extends StoreAnalysisProps {
+interface IndividualStoreProps extends StoreAnalysisProps {
   name: string;
 }
 
@@ -64,12 +65,11 @@ const StoreCounts: React.FC<StoreCountsProps> = (props) => {
   );
 };
 
-const StoreUsageTime: React.FC<StoreUsageTimeProps> = ({ name, dataMaps }) => {
+const StoreUsageTime: React.FC<IndividualStoreProps> = ({ name, dataMaps }) => {
   const { storeMap, dateMap } = dataMaps;
   const [data, setData] = useState<Data[]>([]);
   const [layout, setLayout] = useState<any>({
     autosize: true,
-    title: "Daily Listings for " + name + "",
     xaxis: {
       title: "Date",
       tickangle: -45,
@@ -110,10 +110,10 @@ const StoreUsageTime: React.FC<StoreUsageTimeProps> = ({ name, dataMaps }) => {
     setData(storeData);
 
     const maxYValue = Math.max(...counts);
-    console.log("maxYValue: " + maxYValue, counts, dataList);
     const margin = maxYValue * 0.1;
     const storeLayout = {
       ...layout, // Extend the existing layout object
+      title: "Daily Listings for " + name + "",
       yaxis: {
         title: "Listings",
         range: [0, maxYValue + margin],
@@ -124,9 +124,6 @@ const StoreUsageTime: React.FC<StoreUsageTimeProps> = ({ name, dataMaps }) => {
 
   return (
     <>
-      <Typography variant="h6" gutterBottom>
-        {name}
-      </Typography>
       <Box sx={{ height: "100%", width: "100%", overflowX: "auto" }}>
         <Plot
           data={data}
@@ -136,6 +133,67 @@ const StoreUsageTime: React.FC<StoreUsageTimeProps> = ({ name, dataMaps }) => {
         />
         <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
       </Box>
+    </>
+  );
+};
+
+const StorePriceDistribution: React.FC<IndividualStoreProps> = ({
+  name,
+  dataMaps,
+}) => {
+  const { storeMap, dateMap } = dataMaps;
+  const [data, setData] = useState<Data[]>([]);
+  if (!name || !dateMap) {
+    return <></>;
+  }
+
+  useEffect(() => {
+    const dataList = storeMap.get(name);
+    if (!dataList) {
+      return;
+    }
+    const prices: number[] = dataList.map((entry) => {
+      console.log(entry, entry[HEADER_TITLES.priceIncludingTax]);
+      return parseFloat(entry[HEADER_TITLES.priceIncludingTax].split(" ")[0]);
+    });
+    const priceData: Data[] = [
+      {
+        x: prices,
+        type: "histogram",
+        marker: { color: "blue" },
+      },
+    ];
+
+    setData(priceData);
+  }, [name, storeMap, dateMap]);
+
+  return (
+    <>
+      <Box sx={{ height: "100%", width: "100%", overflowX: "auto" }}>
+        <Plot
+          data={data}
+          layout={{
+            autosize: true,
+            title: "Price Distribution for " + name + "",
+          }}
+          useResizeHandler={true}
+          style={{ width: "100%", height: "100%" }}
+        />
+        <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
+      </Box>
+    </>
+  );
+};
+
+const StorePlots: React.FC<IndividualStoreProps> = (props) => {
+  const { name, dataMaps } = props;
+  return (
+    <>
+      <Typography variant="h6" gutterBottom>
+        {name}
+      </Typography>
+      <StoreUsageTime name={name} dataMaps={dataMaps} />
+      <StorePriceDistribution name={name} dataMaps={dataMaps} />
     </>
   );
 };
@@ -204,10 +262,7 @@ const StoreAnalysis: React.FC<StoreAnalysisProps> = ({ dataMaps }) => {
         <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
         <Box sx={{ height: "100%", width: "100%", overflowX: "auto" }}>
           {selectedStore && (
-            <StoreUsageTime
-              name={selectedStore}
-              dataMaps={{ storeMap, dateMap }}
-            />
+            <StorePlots name={selectedStore} dataMaps={{ storeMap, dateMap }} />
           )}
         </Box>
       </FormGroup>

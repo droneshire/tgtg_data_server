@@ -7,7 +7,6 @@ export interface CsvDataRow {
 
 const parseCsv = (file: File): Promise<CsvDataRow[]> => {
   return new Promise((resolve, reject) => {
-    const headerTitle = "store_name";
 
     console.log("Parsing CSV file...");
     Papa.parse(file, {

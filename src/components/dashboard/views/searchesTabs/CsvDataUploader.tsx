@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Button, CircularProgress } from "@mui/material";
 import { CsvDataRow } from "workers/csvWorker";
+import { HEADER_TITLES } from "utils/constants";
 
 export type DataMap = Map<string, CsvDataRow[]>;
 
@@ -13,16 +14,13 @@ interface CsvUploaderProps {
   onUpload?: (dataMaps: DataMaps) => void;
 }
 
-const storeNameKey = "store_name";
-const dateNameKey = "timestamp";
-
 const transformData = (data: CsvDataRow[]): DataMaps => {
   const storeMap = new Map();
   const dateMap = new Map();
 
   data.forEach((row) => {
-    const storeName = row[storeNameKey];
-    const timestamp = row[dateNameKey];
+    const storeName = row[HEADER_TITLES.storeName];
+    const timestamp = row[HEADER_TITLES.timeStamp];
 
     // grab the date from the timestamp
     const date = timestamp.split(" ")[0];
