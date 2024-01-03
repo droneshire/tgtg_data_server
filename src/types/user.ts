@@ -20,16 +20,19 @@ export interface SearchTimeZone {
   value: string;
 }
 
+export interface Search {
+  region: Region;
+  sendEmail: boolean;
+  eraseData: boolean;
+  lastSearchTime: number;
+  lastDownloadTime: number;
+  numResults: number;
+  uuid: string;
+}
+
 export interface Searches {
   items: {
-    [id: string]: {
-      region: Region;
-      sendEmail: boolean;
-      eraseData: boolean;
-      lastSearchTime: number;
-      lastDownloadTime: number;
-      numResults: number;
-    };
+    [id: string]: Search;
   };
   hoursBetweenCollection: number;
   collectionTimeStart: number;

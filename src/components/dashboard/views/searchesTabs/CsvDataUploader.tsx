@@ -102,6 +102,8 @@ const CsvDataUploader: React.FC<CsvUploaderProps> = ({
 
   const handleAlertClose = () => {
     setAlertOpen(false);
+    setSelectedItem("");
+    setFireStoreData("");
   };
 
   const readFireStoreCsv = useCallback(async (url: string) => {
@@ -168,17 +170,28 @@ const CsvDataUploader: React.FC<CsvUploaderProps> = ({
   useEffect(() => {
     if (selectedItem !== "") {
       console.log("Downloading file from firestore");
-      const pathToStorageFile =
-        "lsz.tgtg@gmail.com/tgtg_search_23a66bdf2e28ab1424c91bbf057adcba/116206.csv";
+      const item = searchItems.find((item) => item.searchId === selectedItem);
+
+      if (!item || !!!item.uuid) {
+        setAlertOpen(true);
+        console.error("Unable to find search item");
+        return;
+      }
+
+      const userBasePath = item.searchId;
+      const searchUuid = `tgtg_search_${item.uuid}`;
+      const fileName = item.numResults.toString() + ".csv";
+      const pathToStorageFile = `${userBasePath}/${searchUuid}/${fileName}`;
       const fileRef = ref(myStorage, pathToStorageFile);
+
+      console.log("Downloading file from firestore: ", pathToStorageFile);
+
       getDownloadURL(fileRef)
         .then((url) => {
           readFireStoreCsv(url);
         })
         .catch((error) => {
           setAlertOpen(true);
-          setSelectedItem("");
-          setFireStoreData("");
           console.error("Error downloading file:", error);
         });
     }

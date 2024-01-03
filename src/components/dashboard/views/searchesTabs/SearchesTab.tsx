@@ -246,6 +246,7 @@ const SearchesTab: FC<{
     lastSearchTime: 0,
     lastDownloadTime: 0,
     numResults: 0,
+    uuid: "",
   };
   const [initialSearchSpec, setInitialSearchSpec] =
     useState<SearchSpec>(defaultSearchSpec);
