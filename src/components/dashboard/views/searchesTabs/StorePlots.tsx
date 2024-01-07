@@ -161,8 +161,10 @@ export const StoreRating: React.FC<IndividualStoreProps> = ({
     data: [],
     layout: {},
   });
+  const [enabled, setEnabled] = useState<boolean>(false);
 
   if (!name || !storeMap) {
+    setEnabled(false);
     return <></>;
   }
 
@@ -176,6 +178,7 @@ export const StoreRating: React.FC<IndividualStoreProps> = ({
     ).filter((rating) => !isNaN(rating));
 
     if (ratings.length === 0) {
+      setEnabled(false);
       return;
     }
 
@@ -195,23 +198,26 @@ export const StoreRating: React.FC<IndividualStoreProps> = ({
     const storeLayout = { width: 600, height: 400 };
 
     setData({ data: storeData, layout: storeLayout });
+    setEnabled(true);
   }, [name, storeMap]);
 
   return (
     <>
-      <Box
-        sx={{
-          height: "100%",
-          width: "100%",
-          overflowX: "auto",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Plot data={data.data} layout={data.layout} useResizeHandler={true} />
-        <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
-      </Box>
+      {enabled && (
+        <Box
+          sx={{
+            height: "100%",
+            width: "100%",
+            overflowX: "auto",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Plot data={data.data} layout={data.layout} useResizeHandler={true} />
+          <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
+        </Box>
+      )}
     </>
   );
 };

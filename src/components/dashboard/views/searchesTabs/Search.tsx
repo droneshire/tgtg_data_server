@@ -19,6 +19,18 @@ export type SearchSpec = Searches["items"][string] & {
   searchId: string;
 };
 
+export const DEFAULT_SEARCH_SPEC: SearchSpec = {
+  region: { latitude: 0, longitude: 0, radius: 0 },
+  searchId: "",
+  sendEmail: false,
+  uploadOnly: false,
+  eraseData: false,
+  lastSearchTime: 0,
+  lastDownloadTime: 0,
+  numResults: 0,
+  uuid: "",
+};
+
 export interface SearchActionOption {
   doAction: () => void;
   ActionIcon: React.ElementType;

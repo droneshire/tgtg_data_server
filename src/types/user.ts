@@ -24,6 +24,7 @@ export interface Search {
   region: Region;
   sendEmail: boolean;
   eraseData: boolean;
+  uploadOnly: boolean;
   lastSearchTime: number;
   lastDownloadTime: number;
   numResults: number;

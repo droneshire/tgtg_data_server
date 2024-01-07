@@ -18,7 +18,7 @@ import { Box } from "@mui/system";
 import { useAsyncAction } from "hooks/async";
 import { useKeyPress } from "hooks/events";
 import { Region } from "types/user";
-import { SearchSpec } from "./Search";
+import { DEFAULT_SEARCH_SPEC, SearchSpec } from "./Search";
 
 export interface SliderProps {
   updateRegion: (region: Region) => void;
@@ -123,21 +123,11 @@ export const NewSearchModal: FC<SearchModalProps> = ({
   initialSearch,
 }) => {
   const modalRef = useRef<HTMLElement>(null);
-  const defaultSearchSpec: SearchSpec = {
-    region: { latitude: 0, longitude: 0, radius: 0 },
-    searchId: "",
-    sendEmail: false,
-    eraseData: false,
-    lastSearchTime: 0,
-    lastDownloadTime: 0,
-    numResults: 0,
-    uuid: "",
-  };
   const [searchSpec, setSearchSpec] = useState<SearchSpec>(
-    initialSearch || defaultSearchSpec
+    initialSearch || DEFAULT_SEARCH_SPEC
   );
   useEffect(() => {
-    setSearchSpec(initialSearch || defaultSearchSpec);
+    setSearchSpec(initialSearch || DEFAULT_SEARCH_SPEC);
   }, [initialSearch]);
 
   const {
@@ -158,8 +148,8 @@ export const NewSearchModal: FC<SearchModalProps> = ({
   }, [creatingSearch, validsearchId]);
 
   const reset = useCallback(() => {
-    setSearchSpec(defaultSearchSpec);
-  }, [setSearchSpec, defaultSearchSpec]);
+    setSearchSpec(DEFAULT_SEARCH_SPEC);
+  }, [setSearchSpec, DEFAULT_SEARCH_SPEC]);
 
   const doSubmit = useCallback(async () => {
     if (disabled) {

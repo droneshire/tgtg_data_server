@@ -44,7 +44,7 @@ const AnalysisTab: FC<{
 
       <Typography variant="body1" gutterBottom>
         Upload a csv file downloaded from <a href="/searches">Searches</a> page
-        that contains addresses to be analyzed.
+        that contains addresses to be analyzed or select from active searches.
       </Typography>
       <FormGroup>
         <CsvDataUploader

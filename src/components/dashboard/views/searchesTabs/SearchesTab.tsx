@@ -38,7 +38,7 @@ import {
   updateDoc,
   deleteField,
 } from "firebase/firestore";
-import { Search, SearchSpec } from "./Search";
+import { DEFAULT_SEARCH_SPEC, Search, SearchSpec } from "./Search";
 import { NewSearchModal } from "./SearchModal";
 import {
   FirestoreBackedSlider,
@@ -238,18 +238,8 @@ const SearchesTab: FC<{
   const deleteDataOnDownload =
     userConfigSnapshot?.data()?.preferences?.deleteDataOnDownload;
   const [modalOpen, setModalOpen] = useState(false);
-  const defaultSearchSpec: SearchSpec = {
-    region: { latitude: 0, longitude: 0, radius: 0 },
-    searchId: "",
-    sendEmail: false,
-    eraseData: false,
-    lastSearchTime: 0,
-    lastDownloadTime: 0,
-    numResults: 0,
-    uuid: "",
-  };
   const [initialSearchSpec, setInitialSearchSpec] =
-    useState<SearchSpec>(defaultSearchSpec);
+    useState<SearchSpec>(DEFAULT_SEARCH_SPEC);
 
   if (!searches) {
     return <CircularProgress />;
@@ -431,7 +421,7 @@ const SearchesTab: FC<{
       <NewSearchModal
         open={modalOpen}
         onClose={() => {
-          setInitialSearchSpec(defaultSearchSpec);
+          setInitialSearchSpec(DEFAULT_SEARCH_SPEC);
           setModalOpen(false);
         }}
         existingsearchIds={existingsearchIds}
