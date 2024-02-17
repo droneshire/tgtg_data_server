@@ -9,12 +9,9 @@ import {
 
 import { ClientConfig } from "types/user";
 import {
-  EmailInput,
   FirestoreBackedSwitch,
-  FirestoreBackedTextField,
   FirestoreBackedTimeZoneSelect,
 } from "components/utils/forms";
-import { isValidEmail } from "utils/validators";
 const NotificationsTab: FC<{
   userConfigSnapshot: DocumentSnapshot<ClientConfig>;
 }> = ({ userConfigSnapshot }) => {

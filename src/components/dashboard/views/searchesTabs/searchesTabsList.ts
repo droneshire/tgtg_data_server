@@ -1,4 +1,3 @@
-import AnalysisTab from "./AnalysisTab";
 import ItemsSearchesTab from "./SearchesTab";
 
 const searchesTabsList = [
@@ -7,11 +6,6 @@ const searchesTabsList = [
     label: "Searches",
     component: ItemsSearchesTab,
   },
-  {
-    key: "demographics",
-    label: "Analysis",
-    component: AnalysisTab,
-  }
 ];
 
 export default searchesTabsList;

@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { CsvDataRow } from "workers/csvWorker";
 import { HEADER_TITLES } from "utils/constants";
-import { SearchSpec } from "./Search";
+import { SearchSpec } from "components/dashboard/views/searchesTabs/Search";
 import { ArrowDropDown } from "@mui/icons-material";
 import { myStorage } from "firebaseApp";
 import { ref, getDownloadURL } from "firebase/storage";
