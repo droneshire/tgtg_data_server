@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { ArrowDropDown } from "@mui/icons-material";
 import {
   Box,
@@ -18,6 +18,7 @@ import { DataMap, DataMaps } from "./CsvDataUploader";
 import { CsvDataRow } from "workers/csvWorker";
 import { HEADER_TITLES } from "utils/constants";
 import { useTheme } from "@mui/material/styles";
+import useResizeObserver from "utils/resize_observer";
 
 export interface IndividualStoreProps extends AllStoreProps {
   name: string;
@@ -100,12 +101,21 @@ export const StoreMaps: React.FC<StoreMapProps> = ({ storeMap }) => {
 
   return (
     <>
-      <Box sx={{ height: "100%", width: "100%", overflowX: "auto" }}>
+      <Box
+        sx={{
+          height: "100%",
+          width: "100%",
+          overflowX: "auto",
+        }}
+      >
         <Plot
           data={data.data}
           layout={data.layout}
           useResizeHandler={true}
-          style={{ width: "100%", height: "100%" }}
+          style={{
+            height: "100%",
+            width: "100%",
+          }}
         />
       </Box>
       <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
@@ -506,42 +516,31 @@ export const AllMealTypes: React.FC<StoreMapProps> = ({ storeMap }) => {
 
   return (
     <>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "stretch",
-          width: "100%",
-          height: "500px",
-          overflowX: "auto",
-        }}
-      >
-        <Box sx={{ flex: 1, paddingRight: 1, height: "100%" }}>
-          <Plot
-            data={dataTypes}
-            layout={{
-              autosize: true,
-              title: "Meal Types",
-            }}
-            useResizeHandler={true}
-            style={{ width: "100%", height: "100%" }}
-          />
-        </Box>
-
-        <Box sx={{ flex: 1, paddingLeft: 1, height: "100%" }}>
-          <Plot
-            data={dataCategories}
-            layout={{
-              autosize: true,
-              title: "Meal Categories",
-            }}
-            useResizeHandler={true}
-            style={{ width: "100%", height: "100%" }}
-          />
-        </Box>
-
-        <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
+      <Box sx={{ height: "100%" }}>
+        <Plot
+          data={dataTypes}
+          layout={{
+            autosize: true,
+            title: "Meal Types",
+          }}
+          useResizeHandler={true}
+          style={{ width: "100%", height: "100%" }}
+        />
       </Box>
+
+      <Box sx={{ height: "100%" }}>
+        <Plot
+          data={dataCategories}
+          layout={{
+            autosize: true,
+            title: "Meal Categories",
+          }}
+          useResizeHandler={true}
+          style={{ width: "100%", height: "100%" }}
+        />
+      </Box>
+
+      <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
     </>
   );
 };

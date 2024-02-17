@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Typography, Divider } from "@mui/material";
-import DataAnalysis from "./DataAnalysis";
+import DataAnalysis from "./components/DataAnalysis";
 import AnalysisTabsProps from "./analysisTabProps";
 
 const StoreAnalysisTab: FC<AnalysisTabsProps> = (props) => {

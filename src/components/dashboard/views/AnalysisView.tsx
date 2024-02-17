@@ -5,7 +5,7 @@ import { Box, Tab, Tabs } from "@mui/material";
 import { DashboardViewContext } from "components/dashboard/DashboardPage";
 import analysisTabsList from "./analysisTabs/analysisTabsList";
 import { TabPanel } from "components/utils/tabs";
-import { DataMaps } from "./analysisTabs/CsvDataUploader";
+import { DataMaps } from "./analysisTabs/components/CsvDataUploader";
 import { CsvDataRow } from "workers/csvWorker";
 
 const AnalysisView: FC = () => {

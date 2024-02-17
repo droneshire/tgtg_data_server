@@ -1,5 +1,5 @@
 import { DocumentSnapshot } from "firebase/firestore";
-import { DataMaps } from "./CsvDataUploader";
+import { DataMaps } from "./components/CsvDataUploader";
 import { ClientConfig } from "types/user";
 
 interface AnalysisTabsProps {

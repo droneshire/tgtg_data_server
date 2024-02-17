@@ -1,6 +1,6 @@
 import { FC, useMemo } from "react";
 import { Typography, Divider, FormGroup } from "@mui/material";
-import CsvDataUploader, { DataMaps } from "./CsvDataUploader";
+import CsvDataUploader, { DataMaps } from "./components/CsvDataUploader";
 import { SearchSpec } from "components/dashboard/views/searchesTabs/Search";
 
 import AnalysisTabsProps from "./analysisTabProps";
