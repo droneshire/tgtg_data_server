@@ -50,3 +50,13 @@ const TYPES: string[] = [
 ];
 
 const ADVANCED_PROMPT: string = `All ${TYPES.join(", ")}`;
+
+const METERS_PER_MILE = 1609.34;
+
+export {
+  LOCATIONS,
+  ADVANCED_FIELDS,
+  TYPES,
+  ADVANCED_PROMPT,
+  METERS_PER_MILE,
+};
