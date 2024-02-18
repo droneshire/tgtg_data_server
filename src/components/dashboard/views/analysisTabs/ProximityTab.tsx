@@ -1,15 +1,25 @@
 import { Typography } from "@mui/material";
 import React from "react";
 import AnalysisTabsProps from "./analysisTabProps";
+import ProximitySearchCoverage from "./components/ProximitySearchCoverage";
 
 const ProximityTab: React.FC<AnalysisTabsProps> = (props) => {
-  // Add your component logic here
+  const dataMaps = props.dataMaps;
+  const displayChart = props.displayChart;
 
   return (
-    // Add your JSX code for the ProximityTab component here
-    <Typography variant="h6" gutterBottom>
-      Contextual Proximity Analysis
-    </Typography>
+    <>
+      <Typography variant="h6" gutterBottom>
+        Contextual Proximity Analysis
+      </Typography>
+      {displayChart && (
+        <>
+          <ProximitySearchCoverage
+            dataMaps={dataMaps}
+          ></ProximitySearchCoverage>
+        </>
+      )}
+    </>
   );
 };
 

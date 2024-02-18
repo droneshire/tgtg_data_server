@@ -4,6 +4,8 @@ import DataAnalysis from "./components/DataAnalysis";
 import AnalysisTabsProps from "./analysisTabProps";
 
 const StoreAnalysisTab: FC<AnalysisTabsProps> = (props) => {
+  const dataMaps = props.dataMaps;
+  const displayChart = props.displayChart;
   return (
     <>
       <Typography variant="h6" gutterBottom>
@@ -15,9 +17,9 @@ const StoreAnalysisTab: FC<AnalysisTabsProps> = (props) => {
         that contains addresses to be analyzed or select from active searches.
       </Typography>
       <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
-      {props.displayChart && (
+      {displayChart && (
         <>
-          <DataAnalysis dataMaps={props.dataMaps}></DataAnalysis>
+          <DataAnalysis dataMaps={dataMaps}></DataAnalysis>
         </>
       )}
     </>
