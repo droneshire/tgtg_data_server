@@ -1,6 +1,6 @@
 import StoreAnalysisTab from "./StoreAnalysisTab";
 import DataSelectTab from "./DataSelectTab";
-import ProximityTab from "./ProximityTab";
+import ResearchTab from "./ResearchTab";
 
 const analysisTabsList = [
   // The first one in the list is the default tab
@@ -16,9 +16,9 @@ const analysisTabsList = [
     component: StoreAnalysisTab,
   },
   {
-    key: "proximity",
-    label: "Proximity",
-    component: ProximityTab,
+    key: "research",
+    label: "Research",
+    component: ResearchTab,
   },
 ];
 

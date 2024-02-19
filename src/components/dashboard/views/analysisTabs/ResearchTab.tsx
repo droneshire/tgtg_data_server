@@ -1,7 +1,7 @@
 import { Typography } from "@mui/material";
 import React from "react";
 import AnalysisTabsProps from "./analysisTabProps";
-import ProximitySearchCoverage from "./components/ProximitySearchCoverage";
+import ResearchCoverage from "./components/ResearchCoverage";
 
 const ProximityTab: React.FC<AnalysisTabsProps> = (props) => {
   const dataMaps = props.dataMaps;
@@ -14,9 +14,7 @@ const ProximityTab: React.FC<AnalysisTabsProps> = (props) => {
       </Typography>
       {displayChart && (
         <>
-          <ProximitySearchCoverage
-            dataMaps={dataMaps}
-          ></ProximitySearchCoverage>
+          <ResearchCoverage dataMaps={dataMaps}></ResearchCoverage>
         </>
       )}
     </>

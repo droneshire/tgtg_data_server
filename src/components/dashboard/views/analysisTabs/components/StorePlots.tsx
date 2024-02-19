@@ -103,6 +103,7 @@ export const StoreMaps: React.FC<StoreMapProps> = ({ storeMap }) => {
     <>
       <Box
         sx={{
+          flex: 1,
           height: "100%",
           width: "100%",
           overflowX: "auto",
