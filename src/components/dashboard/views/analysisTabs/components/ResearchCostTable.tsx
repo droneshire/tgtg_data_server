@@ -54,7 +54,7 @@ const ResearchCostTable: React.FC<ResearchCostTableProps> = (props) => {
                 },
               }}
             >
-              <TableCell>Estimated Cost</TableCell>
+              <TableCell>Estimated Total Cost</TableCell>
               <TableCell>${costResults.totalCost.toFixed(2)}</TableCell>
             </TableRow>
             <TableRow
@@ -66,7 +66,26 @@ const ResearchCostTable: React.FC<ResearchCostTableProps> = (props) => {
               }}
             >
               <TableCell>Estimated Searches</TableCell>
-              <TableCell>{costResults.numberOfSquares.toFixed(0)}</TableCell>
+              <TableCell>
+                {Number(
+                  costResults.numberOfSquares.toFixed(0)
+                ).toLocaleString()}
+              </TableCell>
+            </TableRow>
+            <TableRow
+              sx={{
+                marginLeft: "1rem",
+                "& > *": {
+                  textAlign: "left",
+                },
+              }}
+            >
+              <TableCell>Single Search Size (m)</TableCell>
+              <TableCell>
+                {Number(
+                  Math.sqrt(costResults.searchBlockArea).toFixed(2)
+                ).toLocaleString()}
+              </TableCell>
             </TableRow>
             <TableRow
               sx={{
@@ -80,6 +99,21 @@ const ResearchCostTable: React.FC<ResearchCostTableProps> = (props) => {
               <TableCell>
                 {Number(
                   costResults.totalAreaMeters.toFixed(0)
+                ).toLocaleString()}
+              </TableCell>
+            </TableRow>
+            <TableRow
+              sx={{
+                marginLeft: "1rem",
+                "& > *": {
+                  textAlign: "left",
+                },
+              }}
+            >
+              <TableCell>Actual Search Radius (mi)</TableCell>
+              <TableCell>
+                {Number(
+                  costResults.searchRadiusMiles.toFixed(2)
                 ).toLocaleString()}
               </TableCell>
             </TableRow>

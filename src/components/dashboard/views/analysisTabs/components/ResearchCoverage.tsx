@@ -26,6 +26,7 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({ dataMaps }) => {
     totalCost: 0,
     searchBlockArea: 0,
     totalAreaMeters: 0,
+    searchRadiusMiles: 0,
   });
 
   const handleAnalyzeClick = (inputs: ResearchParameterInputs) => {
@@ -48,6 +49,7 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({ dataMaps }) => {
       totalCost: 0,
       searchBlockArea: 0,
       totalAreaMeters: 0,
+      searchRadiusMiles: 0,
     });
   };
 
@@ -64,6 +66,7 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({ dataMaps }) => {
       totalCost: gridSearchResults.totalCost,
       searchBlockArea: gridAreaMeters,
       totalAreaMeters: totalAreaMeters,
+      searchRadiusMiles: gridSearchResults.radiusMiles,
     });
     setDisplayResearchResults(true);
   };
@@ -100,7 +103,7 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({ dataMaps }) => {
           }}
         >
           <Typography variant="h6" gutterBottom>
-            Search Grid
+            Search Grid for {cityName}
           </Typography>
           <ResearchSearchEstimateMap
             cityName={cityName}

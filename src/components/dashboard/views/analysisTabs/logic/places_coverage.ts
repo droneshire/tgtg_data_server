@@ -7,6 +7,7 @@ interface CostResults {
   totalCost: number;
   searchBlockArea: number;
   totalAreaMeters: number;
+  searchRadiusMiles: number;
 }
 
 function calculateCostFromResults(
@@ -43,6 +44,7 @@ function calculateCostFromResults(
     totalCost,
     searchBlockArea,
     totalAreaMeters,
+    searchRadiusMiles: radiusMeters / METERS_PER_MILE,
   };
 }
 

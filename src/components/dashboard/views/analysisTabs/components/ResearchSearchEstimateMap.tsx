@@ -5,7 +5,7 @@ import { Data } from "plotly.js";
 import { DataMaps } from "./CsvDataUploader";
 import { Coordinates, getCityCenterCoordinates } from "utils/demographics";
 import { HEADER_TITLES } from "utils/constants";
-import { Box, Divider, Typography, useTheme } from "@mui/material";
+import { Divider } from "@mui/material";
 import {
   GridSearchResults,
   findMaxGridSearchResultsWithinBudget,
@@ -28,9 +28,6 @@ interface PlotData {
 const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
   props
 ) => {
-  const theme = useTheme();
-  const secondaryColor = theme.palette.secondary.main;
-
   const [data, setData] = useState<PlotData>({
     data: [],
     layout: {},
@@ -154,18 +151,9 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
         },
       },
     ];
-
-    const subText = `${gridSearchResults.radiusMiles.toFixed(
-      1
-    )}mi radius, ${gridSearchResults.numberOfSquares.toFixed(
-      0
-    )} blocks, ${gridSearchResults.gridWidthMeters.toFixed(0)}m blocks`;
     const layoutLocal = {
       autosize: true,
       hovermode: "closest",
-      title: `Search Grid for ${cityName} [$${gridSearchResults.totalCost.toFixed(
-        2
-      )}]`,
       mapbox: {
         bearing: 0,
         center: {
@@ -173,8 +161,15 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
           lon: cityCenterCoordinates?.longitude || -90,
         },
         pitch: 0,
-        zoom: 10,
+        zoom: 9,
         style: "open-street-map",
+      },
+      legend: {
+        orientation: "h",
+        x: 0.5,
+        xanchor: "center",
+        y: -0.2,
+        yanchor: "bottom",
       },
     };
 
@@ -187,26 +182,15 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
 
   return (
     <>
-      <Box
-        sx={{
-          height: "100%",
+      <Plot
+        data={data.data}
+        layout={data.layout}
+        useResizeHandler={true}
+        style={{
+          height: "600px",
           width: "100%",
-          overflowX: "auto",
         }}
-      >
-        <Plot
-          data={data.data}
-          layout={data.layout}
-          useResizeHandler={true}
-          style={{
-            height: "100%",
-            width: "100%",
-          }}
-        />
-        <Typography variant="body2" align="center">
-          {subText}
-        </Typography>
-      </Box>
+      />
       <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
     </>
   );
