@@ -29,9 +29,7 @@ interface TextSearchData {
   includedType?: string;
 }
 
-interface GooglePlacesAPIResponse {
-  [key: string]: any;
-}
+type GooglePlacesAPIResponse = { [key: string]: any } | null;
 
 class GooglePlacesAPI {
   private readonly base_url: string;
@@ -40,6 +38,7 @@ class GooglePlacesAPI {
   private readonly minViewpointWidthMeters: number;
   private readonly maxViewpointWidthMeters: number;
   private readonly viewpointWidthStepMeters: number;
+  private apiCalls: number;
 
   constructor(
     private readonly api_key: string,
@@ -53,8 +52,9 @@ class GooglePlacesAPI {
     };
     this.defaultFields = "places.formattedAddress,places.displayName";
     this.minViewpointWidthMeters = 100.0;
-    this.maxViewpointWidthMeters = 50000.0;
+    this.maxViewpointWidthMeters = 500.0;
     this.viewpointWidthStepMeters = 50.0;
+    this.apiCalls = 0;
   }
 
   private async postRequest(
@@ -66,15 +66,19 @@ class GooglePlacesAPI {
         headers: this.headers,
         timeout: 10000,
       });
+      this.apiCalls++;
+      if (this.verbose) {
+        console.log(`API calls: ${this.apiCalls}`);
+      }
       return response.data;
     } catch (error) {
       console.error(`Could not make POST request to ${url}`);
       console.error(error);
-      return {};
+      return null;
     }
   }
 
-  private async textSearch(
+  public async textSearch(
     query: string,
     fields?: string[],
     data?: TextSearchData
@@ -163,15 +167,18 @@ class GooglePlacesAPI {
         console.log(`Results: ${JSON.stringify(results, null, 2)}`);
       }
 
-      if (!results || !results.places || results.places.length === 0) {
+      if (!results) {
         return 0;
-      } else if (results.places.length >= 20) {
+      } else if (results.places) {
         if (this.verbose) {
           console.log(
             `Found ${results.places.length} results with viewpoint width ${viewpoint_width_meters} meters`
           );
         }
-        return viewpoint_width_meters - this.viewpointWidthStepMeters;
+
+        if (results.places.length >= 20) {
+          return viewpoint_width_meters - this.viewpointWidthStepMeters;
+        }
       }
 
       viewpoint_width_meters += this.viewpointWidthStepMeters;
@@ -182,3 +189,5 @@ class GooglePlacesAPI {
 }
 
 export default GooglePlacesAPI;
+
+export type { GooglePlacesAPIResponse, TextSearchData };

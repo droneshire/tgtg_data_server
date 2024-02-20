@@ -9,7 +9,7 @@ import {
   getCityCenterCoordinates,
   getGridCoordinates,
 } from "utils/demographics";
-import GooglePlacesAPI from "utils/google_places";
+import GooglePlacesAPI, { TextSearchData } from "utils/google_places";
 import {
   ADVANCED_FIELDS,
   MAX_COST_PER_CITY,
@@ -18,7 +18,7 @@ import {
 } from "../logic/constants";
 import { calculateCostFromResults } from "../logic/places_coverage";
 import { HEADER_TITLES } from "utils/constants";
-import { Box, Divider, useTheme } from "@mui/material";
+import { Box, Divider, Typography, useTheme } from "@mui/material";
 
 interface ResearchSearchEstimateMapProps {
   dataMaps: DataMaps;
@@ -60,16 +60,12 @@ const findMaxRadiusWithinBudget = async (
     await googlePlacesApi.findMaximumViewpointWidth(
       centerLat,
       centerLon,
-      "All Restaurants",
-      ADVANCED_FIELDS
+      "All Restaurants"
     );
 
-  // conservative estimate of the grid width
-  const conservativeGridWidthMeters = maxGridResolutionWidthMeters - 50.0;
+  console.log(`Max viewpoint width: ${maxGridResolutionWidthMeters}m`);
 
-  console.log(`Max viewpoint width: ${conservativeGridWidthMeters}m`);
-
-  if (conservativeGridWidthMeters <= 0) {
+  if (maxGridResolutionWidthMeters <= 0) {
     console.error("Error: Unable to find maximum viewpoint width");
     return {
       radiusMiles: 0,
@@ -82,29 +78,29 @@ const findMaxRadiusWithinBudget = async (
 
   while (totalCost > MAX_COST_PER_CITY && radiusMeters > METERS_PER_KILOMETER) {
     ({ numberOfSquares, totalCost } = calculateCostFromResults(
-      conservativeGridWidthMeters,
+      maxGridResolutionWidthMeters,
       costPerSearch,
       radiusMeters,
       false
     ));
-    console.log(totalCost);
     radiusMeters -= METERS_PER_KILOMETER;
   }
   grid = getGridCoordinates(
     centerLat,
     centerLon,
     radiusMeters,
-    conservativeGridWidthMeters
+    maxGridResolutionWidthMeters
   );
   const radiusMiles = radiusMeters / METERS_PER_MILE;
 
   console.log(`Final radius: ${radiusMiles.toFixed(2)} miles`);
+  console.log(`Final cost: $${totalCost}`);
   return {
     radiusMiles,
     grid,
     numberOfSquares,
     totalCost,
-    gridWidthMeters: conservativeGridWidthMeters,
+    gridWidthMeters: maxGridResolutionWidthMeters,
   };
 };
 
@@ -113,6 +109,8 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
 ) => {
   const theme = useTheme();
   const mainColor = theme.palette.primary.main;
+  const secondaryColor = theme.palette.secondary.main;
+
   const [data, setData] = useState<PlotData>({
     data: [],
     layout: {},
@@ -124,6 +122,7 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
   const costPerSearch = props.costPerSearch;
 
   const [displayPlot, setDisplayPlot] = useState(false);
+  const [subText, setSubText] = useState("");
   const [gridSearchResults, setGridSearchResults] = useState<GridSearchResults>(
     {
       radiusMiles: 0,
@@ -215,7 +214,13 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
           return dataList ? dataList[0][HEADER_TITLES.latitude] : 0;
         }),
         marker: {
-          color: mainColor,
+          color: counts
+            ? counts.map((count) => count / Math.max(...counts))
+            : 1,
+          colorscale: "viridis",
+          showscale: false,
+          cmin: 0,
+          cmax: 1,
           size: counts
             ? counts.map((count) => Math.max(Math.sqrt(count) * scaleFactor, 1))
             : 1,
@@ -240,17 +245,12 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
         },
         pitch: 0,
         zoom: 9,
-        style: "outdoors",
+        style: "open-street-map",
       },
     };
 
-    const config = {
-      displayModeBar: true,
-      displaylogo: false,
-      responsive: true,
-    };
-
     setData({ data: dataLocal, layout: layoutLocal });
+    setSubText(subText);
     setDisplayPlot(true);
   }, [storeMap, gridSearchResults]);
 
@@ -258,7 +258,6 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
     <>
       <Box
         sx={{
-          flex: 1,
           height: "100%",
           width: "100%",
           overflowX: "auto",
@@ -273,6 +272,7 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
             width: "100%",
           }}
         />
+        <Typography variant="caption">{subText}</Typography>
       </Box>
       <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
     </>
