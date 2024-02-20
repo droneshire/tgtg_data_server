@@ -175,9 +175,7 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
 
     setData({ data: dataLocal, layout: layoutLocal });
     setSubText(subText);
-    if (props.onMapComplete) {
-      props.onMapComplete(gridSearchResults);
-    }
+    props.onMapComplete?.(gridSearchResults);
   }, [storeMap, gridSearchResults]);
 
   return (
