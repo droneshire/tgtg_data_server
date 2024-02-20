@@ -5,28 +5,34 @@ import {
   Select,
   SelectChangeEvent,
   Slider,
+  TextField,
   Typography,
 } from "@mui/material";
 import React from "react";
 
+interface ResearchParameterInputs {
+  cityName: string;
+  costPerSearch: number;
+  searchRadiusMiles: number;
+}
+
 interface ResearchParameterInputsProps {
-  onClick: (
-    searchGridWidthMeters: number,
-    costPerSearch: number,
-    searchRadiusMiles: number
-  ) => void;
+  onClick: (inputs: ResearchParameterInputs) => void;
 }
 
 const ResearchParameterInputs: React.FC<ResearchParameterInputsProps> = (
   props
 ) => {
-  const [searchGridWidthMeters, setSearchGridWidthMeters] =
-    React.useState(500.0);
   const [costPerSearch, setCostPerSearch] = React.useState(0.005);
   const [searchRadiusMiles, setSearchRadiusMiles] = React.useState(20.0);
+  const [cityName, setCityName] = React.useState("");
 
-  const onClick = () => {
-    props.onClick(searchGridWidthMeters, costPerSearch, searchRadiusMiles);
+  const onButtonClick = () => {
+    props.onClick({
+      cityName,
+      costPerSearch,
+      searchRadiusMiles,
+    });
   };
 
   const handleRadiusChange = (event: Event, value: number | number[]) => {
@@ -58,6 +64,17 @@ const ResearchParameterInputs: React.FC<ResearchParameterInputsProps> = (
         alignItems: "flex-start",
       }}
     >
+      <Typography id="city-name" gutterBottom sx={{ marginBottom: "16px" }}>
+        City Name
+      </Typography>
+      <TextField
+        id="city-name"
+        label="City Name"
+        onChange={(event) => {
+          setCityName(event.target.value);
+        }}
+        sx={{ marginBottom: "16px" }}
+      />
       <Typography id="radius-slider" gutterBottom sx={{ marginBottom: "16px" }}>
         Desired Search Radius (mi)
       </Typography>
@@ -94,7 +111,7 @@ const ResearchParameterInputs: React.FC<ResearchParameterInputsProps> = (
       <Button
         variant="contained"
         component="label"
-        onClick={onClick}
+        onClick={onButtonClick}
         sx={{ marginBottom: "16px" }}
       >
         Analyze

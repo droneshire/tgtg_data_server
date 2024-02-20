@@ -1,17 +1,256 @@
-import React from 'react';
+import React, { useEffect, useState } from "react";
+
+import Plot from "react-plotly.js";
+import { Data } from "plotly.js";
+import { DataMaps } from "./CsvDataUploader";
+import {
+  Coordinates,
+  Grid,
+  getCityCenterCoordinates,
+  getGridCoordinates,
+} from "utils/demographics";
+import GooglePlacesAPI from "utils/google_places";
+import {
+  ADVANCED_FIELDS,
+  MAX_COST_PER_CITY,
+  METERS_PER_KILOMETER,
+  METERS_PER_MILE,
+} from "../logic/constants";
+import { calculateCostFromResults } from "../logic/places_coverage";
+import { HEADER_TITLES } from "utils/constants";
+import { Box, Divider, useTheme } from "@mui/material";
 
 interface ResearchSearchEstimateMapProps {
-  // Define the props for the component here
+  dataMaps: DataMaps;
+  costPerSearch: number;
+  cityName: string;
+  searchRadiusMeters: number;
 }
 
-const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (props) => {
-  // Implement the component logic here
+interface GridSearchResults {
+  radiusMiles: number;
+  grid: Grid;
+  numberOfSquares: number;
+  totalCost: number;
+  gridWidthMeters: number;
+}
+
+interface PlotData {
+  data: Data[];
+  layout: any;
+}
+
+const findMaxRadiusWithinBudget = async (
+  centerLat: number,
+  centerLon: number,
+  initialRadiusMeters: number,
+  costPerSearch: number
+): Promise<GridSearchResults> => {
+  let radiusMeters = initialRadiusMeters;
+  let totalCost = MAX_COST_PER_CITY + 1;
+  let grid: Grid = [];
+  let numberOfSquares = 0;
+
+  const googlePlacesApi: GooglePlacesAPI = new GooglePlacesAPI(
+    process.env.REACT_APP_GOOGLE_API_KEY || "",
+    true
+  );
+
+  const maxGridResolutionWidthMeters =
+    await googlePlacesApi.findMaximumViewpointWidth(
+      centerLat,
+      centerLon,
+      "All Restaurants",
+      ADVANCED_FIELDS
+    );
+
+  while (totalCost > MAX_COST_PER_CITY && radiusMeters > METERS_PER_KILOMETER) {
+    grid = getGridCoordinates(
+      centerLat,
+      centerLon,
+      radiusMeters,
+      maxGridResolutionWidthMeters
+    );
+    ({ numberOfSquares, totalCost } = calculateCostFromResults(
+      maxGridResolutionWidthMeters,
+      costPerSearch,
+      radiusMeters
+    ));
+    console.log(totalCost);
+    radiusMeters -= METERS_PER_KILOMETER;
+  }
+
+  const radiusMiles = radiusMeters / METERS_PER_MILE;
+  const gridWidthMeters = maxGridResolutionWidthMeters;
+
+  console.log(`Final radius: ${radiusMiles.toFixed(2)} miles`);
+  return {
+    radiusMiles,
+    grid,
+    numberOfSquares,
+    totalCost,
+    gridWidthMeters,
+  };
+};
+
+const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
+  props
+) => {
+  const theme = useTheme();
+  const mainColor = theme.palette.primary.main;
+  const [data, setData] = useState<PlotData>({
+    data: [],
+    layout: {},
+  });
+
+  const storeMap = props.dataMaps.storeMap;
+  const cityName = props.cityName;
+  const searchRadiusMeters = props.searchRadiusMeters;
+  const costPerSearch = props.costPerSearch;
+
+  const [gridSearchResults, setGridSearchResults] = useState<GridSearchResults>(
+    {
+      radiusMiles: 0,
+      grid: [],
+      numberOfSquares: 0,
+      totalCost: 0,
+      gridWidthMeters: 0,
+    }
+  );
+  const [cityCenterCoordinates, setCityCenterCoordinates] =
+    useState<Coordinates | null>(null);
+
+  // Fetch city center coordinates
+  useEffect(() => {
+    if (!cityName) {
+      return;
+    }
+
+    const fetchCityCenterCoordinates = async () => {
+      const coordinates = await getCityCenterCoordinates(cityName);
+      setCityCenterCoordinates(coordinates);
+    };
+
+    fetchCityCenterCoordinates();
+  }, [cityName]);
+
+  // Calculate the grid search sizes and radius to fit within budget
+  useEffect(() => {
+    const fetchFindMaxRadiusWithinBudget = async () => {
+      if (cityCenterCoordinates) {
+        const gridSearchResults = await findMaxRadiusWithinBudget(
+          cityCenterCoordinates.latitude,
+          cityCenterCoordinates.longitude,
+          searchRadiusMeters,
+          costPerSearch
+        );
+        console.log(gridSearchResults);
+        setGridSearchResults(gridSearchResults);
+      }
+    };
+
+    fetchFindMaxRadiusWithinBudget();
+  }, [cityCenterCoordinates, searchRadiusMeters, costPerSearch]);
+
+  // Plot the grid search results
+  useEffect(() => {
+    if (gridSearchResults.grid.length > 0) {
+      const names: string[] = Array.from(storeMap.keys()).sort();
+      const counts: number[] = names.map((name) => {
+        const dataList = storeMap.get(name);
+        return dataList ? dataList.length : 0;
+      });
+      const zippedArray: string[] = names.map(
+        (name, index) => `${name} (${counts[index]})`
+      );
+      const scaleFactor: number = 0.5;
+
+      const dataLocal: Data[] = [
+        {
+          type: "scattermapbox",
+          lat: gridSearchResults.grid.map((coord) => coord[0]),
+          lon: gridSearchResults.grid.map((coord) => coord[1]),
+          mode: "markers",
+          marker: {
+            size: 2,
+            color: "blue",
+          },
+        },
+        {
+          type: "scattermapbox",
+          text: zippedArray,
+          lon: names.map((key) => {
+            const dataList = storeMap.get(key);
+            return dataList ? dataList[0][HEADER_TITLES.longitude] : 0;
+          }),
+          lat: names.map((key) => {
+            const dataList = storeMap.get(key);
+            return dataList ? dataList[0][HEADER_TITLES.latitude] : 0;
+          }),
+          marker: {
+            color: mainColor,
+            size: counts
+              ? counts.map((count) =>
+                  Math.max(Math.sqrt(count) * scaleFactor, 1)
+                )
+              : 1,
+          },
+        },
+      ];
+
+      const subText = `${gridSearchResults.radiusMiles.toFixed(
+        1
+      )}mi radius, ${gridSearchResults.numberOfSquares.toFixed(
+        0
+      )} blocks, ${gridSearchResults.gridWidthMeters.toFixed(0)}m blocks`;
+      const layoutLocal = {
+        autosize: true,
+        hovermode: "closest",
+        title: `Search Grid for ${cityName} [${gridSearchResults.totalCost}]`,
+        mapbox: {
+          bearing: 0,
+          center: {
+            lat: cityCenterCoordinates?.latitude || 38,
+            lon: cityCenterCoordinates?.longitude || -90,
+          },
+          pitch: 0,
+          zoom: 9,
+          style: "outdoors",
+        },
+      };
+
+      const config = {
+        displayModeBar: true,
+        displaylogo: false,
+        responsive: true,
+      };
+
+      setData({ data: dataLocal, layout: layoutLocal });
+    }
+  }, [storeMap, gridSearchResults]);
 
   return (
-    // JSX code for the component's UI goes here
-    <div>
-      {/* Add your UI components and logic here */}
-    </div>
+    <>
+      <Box
+        sx={{
+          flex: 1,
+          height: "100%",
+          width: "100%",
+          overflowX: "auto",
+        }}
+      >
+        <Plot
+          data={data.data}
+          layout={data.layout}
+          useResizeHandler={true}
+          style={{
+            height: "100%",
+            width: "100%",
+          }}
+        />
+      </Box>
+      <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
+    </>
   );
 };
 

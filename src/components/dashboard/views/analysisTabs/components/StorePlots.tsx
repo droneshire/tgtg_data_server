@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
-import { ArrowDropDown } from "@mui/icons-material";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Divider,
@@ -18,7 +17,6 @@ import { DataMap, DataMaps } from "./CsvDataUploader";
 import { CsvDataRow } from "workers/csvWorker";
 import { HEADER_TITLES } from "utils/constants";
 import { useTheme } from "@mui/material/styles";
-import useResizeObserver from "utils/resize_observer";
 
 export interface IndividualStoreProps extends AllStoreProps {
   name: string;

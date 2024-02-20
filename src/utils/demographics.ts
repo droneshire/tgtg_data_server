@@ -10,6 +10,8 @@ interface Viewport {
   high: Coordinates;
 }
 
+type Grid = [number, number][];
+
 function extractCity(address: string): string | null {
   const parts = address.split(",");
   let city: string | null = null;
@@ -123,7 +125,7 @@ function getGridCoordinates(
   centerLon: number,
   radiusMeters: number,
   gridSideMeters: number
-): [number, number][] {
+): Grid {
   /**
    * Given a center (lat, lon), radius in meters, and grid square area in meters,
    * calculate a grid of coordinates.
@@ -144,7 +146,7 @@ function getGridCoordinates(
   const latStepSize = gridLatAdjustment;
   const lonStepSize = gridLonAdjustment;
 
-  const grid: [number, number][] = [];
+  const grid: Grid = [];
 
   // Subtract 1 from latSteps and lonSteps to avoid going over the radius
   // since we are adding half the step size to the center
@@ -166,4 +168,4 @@ export {
   getGridCoordinates,
 };
 
-export type { Coordinates, Viewport };
+export type { Coordinates, Grid, Viewport };

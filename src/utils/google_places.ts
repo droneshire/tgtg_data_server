@@ -8,7 +8,6 @@
 import axios, { AxiosRequestConfig } from "axios";
 import { Coordinates, Viewport, getViewport } from "./demographics";
 
-
 interface Circle {
   center: Coordinates;
   radius: number;
@@ -49,7 +48,7 @@ class GooglePlacesAPI {
     this.base_url = "https://places.googleapis.com/v1";
     this.headers = {
       "Content-Type": "application/json",
-      "X-Goog-Api-Key": api_key,
+      "X-Goog-Api-Key": this.api_key,
       "X-Goog-FieldMask": "",
     };
     this.defaultFields = "places.formattedAddress,places.displayName";

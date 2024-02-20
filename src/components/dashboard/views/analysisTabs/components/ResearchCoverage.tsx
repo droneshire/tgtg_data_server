@@ -11,14 +11,15 @@ import { METERS_PER_MILE } from "../logic/constants";
 import ResearchSearchEstimateMap from "./ResearchSearchEstimateMap";
 
 interface ResearchCoverageProps {
-  dataMaps: DataMaps; // Replace 'any' with the appropriate type for your dataMaps
+  dataMaps: DataMaps;
 }
 
 const ResearchCoverage: React.FC<ResearchCoverageProps> = ({ dataMaps }) => {
   const [searchGridWidthMeters, setSearchGridWidthMeters] =
     React.useState(500.0);
   const [costPerSearch, setCostPerSearch] = React.useState(0.005);
-  const [searchRadiusMiles, setSearchRadiusMiles] = React.useState(20.0);
+  const [searchRadiusMeters, setSearchRadiusMeters] = React.useState(0);
+  const [cityName, setCityName] = React.useState("");
 
   const [displayResearchResults, setDisplayResearchResults] =
     React.useState(false);
@@ -30,26 +31,22 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({ dataMaps }) => {
     totalAreaMeters: 0,
   });
 
-  const handleAnalyzeClick = (
-    updatedSearchGridWidthMeters: number,
-    updatedCostPerSearch: number,
-    updatedSearchRadiusMiles: number
-  ) => {
-    setCostPerSearch(updatedCostPerSearch);
-    setSearchRadiusMiles(updatedSearchRadiusMiles);
-    setSearchGridWidthMeters(updatedSearchGridWidthMeters);
+  const handleAnalyzeClick = (inputs: ResearchParameterInputs) => {
+    setCostPerSearch(inputs.costPerSearch);
+    setCityName(inputs.cityName);
 
-    const searchRadiusMeters = updatedSearchRadiusMiles * METERS_PER_MILE;
+    const updatedSearchRadiusMeters =
+      inputs.searchRadiusMiles * METERS_PER_MILE;
 
     const newCostResults: CostResults = calculateCostFromResults(
       searchGridWidthMeters,
       costPerSearch,
-      searchRadiusMeters,
+      updatedSearchRadiusMeters,
       true
     );
 
     setCostResults(newCostResults);
-
+    setSearchRadiusMeters(updatedSearchRadiusMeters);
     setDisplayResearchResults(true);
   };
 
@@ -85,7 +82,12 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({ dataMaps }) => {
             padding: "20px",
           }}
         >
-          <ResearchSearchEstimateMap></ResearchSearchEstimateMap>
+          <ResearchSearchEstimateMap
+            cityName={cityName}
+            dataMaps={dataMaps}
+            costPerSearch={costPerSearch}
+            searchRadiusMeters={searchRadiusMeters}
+          ></ResearchSearchEstimateMap>
         </Box>
       )}
     </>

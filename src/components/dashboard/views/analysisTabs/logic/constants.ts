@@ -52,11 +52,16 @@ const TYPES: string[] = [
 const ADVANCED_PROMPT: string = `All ${TYPES.join(", ")}`;
 
 const METERS_PER_MILE = 1609.34;
+const METERS_PER_KILOMETER = 1000.0;
+
+const MAX_COST_PER_CITY = 700.0;
 
 export {
   LOCATIONS,
   ADVANCED_FIELDS,
   TYPES,
   ADVANCED_PROMPT,
+  METERS_PER_KILOMETER,
   METERS_PER_MILE,
+  MAX_COST_PER_CITY,
 };
