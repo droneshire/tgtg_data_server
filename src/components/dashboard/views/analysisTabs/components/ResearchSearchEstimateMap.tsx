@@ -52,7 +52,7 @@ const findMaxRadiusWithinBudget = async (
   let numberOfSquares = 0;
 
   const googlePlacesApi: GooglePlacesAPI = new GooglePlacesAPI(
-    process.env.REACT_APP_GOOGLE_API_KEY || "",
+    process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "",
     true
   );
 
@@ -64,24 +64,39 @@ const findMaxRadiusWithinBudget = async (
       ADVANCED_FIELDS
     );
 
+  // conservative estimate of the grid width
+  const conservativeGridWidthMeters = maxGridResolutionWidthMeters - 50.0;
+
+  console.log(`Max viewpoint width: ${conservativeGridWidthMeters}m`);
+
+  if (conservativeGridWidthMeters <= 0) {
+    console.error("Error: Unable to find maximum viewpoint width");
+    return {
+      radiusMiles: 0,
+      grid: [],
+      numberOfSquares: 0,
+      totalCost: 0,
+      gridWidthMeters: 0,
+    };
+  }
+
   while (totalCost > MAX_COST_PER_CITY && radiusMeters > METERS_PER_KILOMETER) {
-    grid = getGridCoordinates(
-      centerLat,
-      centerLon,
-      radiusMeters,
-      maxGridResolutionWidthMeters
-    );
     ({ numberOfSquares, totalCost } = calculateCostFromResults(
-      maxGridResolutionWidthMeters,
+      conservativeGridWidthMeters,
       costPerSearch,
-      radiusMeters
+      radiusMeters,
+      false
     ));
     console.log(totalCost);
     radiusMeters -= METERS_PER_KILOMETER;
   }
-
+  grid = getGridCoordinates(
+    centerLat,
+    centerLon,
+    radiusMeters,
+    conservativeGridWidthMeters
+  );
   const radiusMiles = radiusMeters / METERS_PER_MILE;
-  const gridWidthMeters = maxGridResolutionWidthMeters;
 
   console.log(`Final radius: ${radiusMiles.toFixed(2)} miles`);
   return {
@@ -89,7 +104,7 @@ const findMaxRadiusWithinBudget = async (
     grid,
     numberOfSquares,
     totalCost,
-    gridWidthMeters,
+    gridWidthMeters: conservativeGridWidthMeters,
   };
 };
 
@@ -108,6 +123,7 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
   const searchRadiusMeters = props.searchRadiusMeters;
   const costPerSearch = props.costPerSearch;
 
+  const [displayPlot, setDisplayPlot] = useState(false);
   const [gridSearchResults, setGridSearchResults] = useState<GridSearchResults>(
     {
       radiusMiles: 0,
@@ -120,19 +136,28 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
   const [cityCenterCoordinates, setCityCenterCoordinates] =
     useState<Coordinates | null>(null);
 
+  const memoizedCityCenterCoordinates = React.useMemo(
+    () => cityCenterCoordinates,
+    [cityCenterCoordinates]
+  );
+  const memoizedCityName = React.useMemo(() => cityName, [cityName]);
+
   // Fetch city center coordinates
   useEffect(() => {
-    if (!cityName) {
+    if (!memoizedCityName) {
       return;
     }
 
     const fetchCityCenterCoordinates = async () => {
-      const coordinates = await getCityCenterCoordinates(cityName);
+      const coordinates = await getCityCenterCoordinates(memoizedCityName);
       setCityCenterCoordinates(coordinates);
+      console.log(
+        `${memoizedCityName} center coordinates: ${coordinates.latitude}, ${coordinates.longitude}`
+      );
     };
 
     fetchCityCenterCoordinates();
-  }, [cityName]);
+  }, [memoizedCityName]);
 
   // Calculate the grid search sizes and radius to fit within budget
   useEffect(() => {
@@ -150,86 +175,86 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
     };
 
     fetchFindMaxRadiusWithinBudget();
-  }, [cityCenterCoordinates, searchRadiusMeters, costPerSearch]);
+  }, [memoizedCityCenterCoordinates, searchRadiusMeters, costPerSearch]);
 
   // Plot the grid search results
   useEffect(() => {
-    if (gridSearchResults.grid.length > 0) {
-      const names: string[] = Array.from(storeMap.keys()).sort();
-      const counts: number[] = names.map((name) => {
-        const dataList = storeMap.get(name);
-        return dataList ? dataList.length : 0;
-      });
-      const zippedArray: string[] = names.map(
-        (name, index) => `${name} (${counts[index]})`
-      );
-      const scaleFactor: number = 0.5;
-
-      const dataLocal: Data[] = [
-        {
-          type: "scattermapbox",
-          lat: gridSearchResults.grid.map((coord) => coord[0]),
-          lon: gridSearchResults.grid.map((coord) => coord[1]),
-          mode: "markers",
-          marker: {
-            size: 2,
-            color: "blue",
-          },
-        },
-        {
-          type: "scattermapbox",
-          text: zippedArray,
-          lon: names.map((key) => {
-            const dataList = storeMap.get(key);
-            return dataList ? dataList[0][HEADER_TITLES.longitude] : 0;
-          }),
-          lat: names.map((key) => {
-            const dataList = storeMap.get(key);
-            return dataList ? dataList[0][HEADER_TITLES.latitude] : 0;
-          }),
-          marker: {
-            color: mainColor,
-            size: counts
-              ? counts.map((count) =>
-                  Math.max(Math.sqrt(count) * scaleFactor, 1)
-                )
-              : 1,
-          },
-        },
-      ];
-
-      const subText = `${gridSearchResults.radiusMiles.toFixed(
-        1
-      )}mi radius, ${gridSearchResults.numberOfSquares.toFixed(
-        0
-      )} blocks, ${gridSearchResults.gridWidthMeters.toFixed(0)}m blocks`;
-      const layoutLocal = {
-        autosize: true,
-        hovermode: "closest",
-        title: `Search Grid for ${cityName} [${gridSearchResults.totalCost}]`,
-        mapbox: {
-          bearing: 0,
-          center: {
-            lat: cityCenterCoordinates?.latitude || 38,
-            lon: cityCenterCoordinates?.longitude || -90,
-          },
-          pitch: 0,
-          zoom: 9,
-          style: "outdoors",
-        },
-      };
-
-      const config = {
-        displayModeBar: true,
-        displaylogo: false,
-        responsive: true,
-      };
-
-      setData({ data: dataLocal, layout: layoutLocal });
+    if (gridSearchResults.grid.length <= 0) {
+      return;
     }
+    const names: string[] = Array.from(storeMap.keys()).sort();
+    const counts: number[] = names.map((name) => {
+      const dataList = storeMap.get(name);
+      return dataList ? dataList.length : 0;
+    });
+    const zippedArray: string[] = names.map(
+      (name, index) => `${name} (${counts[index]})`
+    );
+    const scaleFactor: number = 0.5;
+
+    const dataLocal: Data[] = [
+      {
+        type: "scattermapbox",
+        lat: gridSearchResults.grid.map((coord) => coord[0]),
+        lon: gridSearchResults.grid.map((coord) => coord[1]),
+        mode: "markers",
+        marker: {
+          size: 2,
+          color: "blue",
+        },
+      },
+      {
+        type: "scattermapbox",
+        text: zippedArray,
+        lon: names.map((key) => {
+          const dataList = storeMap.get(key);
+          return dataList ? dataList[0][HEADER_TITLES.longitude] : 0;
+        }),
+        lat: names.map((key) => {
+          const dataList = storeMap.get(key);
+          return dataList ? dataList[0][HEADER_TITLES.latitude] : 0;
+        }),
+        marker: {
+          color: mainColor,
+          size: counts
+            ? counts.map((count) => Math.max(Math.sqrt(count) * scaleFactor, 1))
+            : 1,
+        },
+      },
+    ];
+
+    const subText = `${gridSearchResults.radiusMiles.toFixed(
+      1
+    )}mi radius, ${gridSearchResults.numberOfSquares.toFixed(
+      0
+    )} blocks, ${gridSearchResults.gridWidthMeters.toFixed(0)}m blocks`;
+    const layoutLocal = {
+      autosize: true,
+      hovermode: "closest",
+      title: `Search Grid for ${cityName} [${gridSearchResults.totalCost}]`,
+      mapbox: {
+        bearing: 0,
+        center: {
+          lat: cityCenterCoordinates?.latitude || 38,
+          lon: cityCenterCoordinates?.longitude || -90,
+        },
+        pitch: 0,
+        zoom: 9,
+        style: "outdoors",
+      },
+    };
+
+    const config = {
+      displayModeBar: true,
+      displaylogo: false,
+      responsive: true,
+    };
+
+    setData({ data: dataLocal, layout: layoutLocal });
+    setDisplayPlot(true);
   }, [storeMap, gridSearchResults]);
 
-  return (
+  return displayPlot ? (
     <>
       <Box
         sx={{
@@ -251,6 +276,8 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
       </Box>
       <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
     </>
+  ) : (
+    <></>
   );
 };
 

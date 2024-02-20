@@ -159,7 +159,13 @@ class GooglePlacesAPI {
       const data = { locationRestriction: { rectangle: rect_viewpoint } };
       const results = await this.textSearch(query, fields, data);
 
-      if (results && results.places && results.places.length >= 20) {
+      if (this.verbose) {
+        console.log(`Results: ${JSON.stringify(results, null, 2)}`);
+      }
+
+      if (!results || !results.places || results.places.length === 0) {
+        return 0;
+      } else if (results.places.length >= 20) {
         if (this.verbose) {
           console.log(
             `Found ${results.places.length} results with viewpoint width ${viewpoint_width_meters} meters`

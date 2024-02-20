@@ -40,7 +40,7 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({ dataMaps }) => {
 
     const newCostResults: CostResults = calculateCostFromResults(
       searchGridWidthMeters,
-      costPerSearch,
+      inputs.costPerSearch,
       updatedSearchRadiusMeters,
       true
     );
