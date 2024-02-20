@@ -8,35 +8,57 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import ConfirmationDialog from "components/utils/confirmationDialog";
 import React from "react";
 
 interface ResearchParameterInputs {
   cityName: string;
   costPerSearch: number;
   searchRadiusMiles: number;
+  searchBudget: number;
 }
 
 interface ResearchParameterInputsProps {
   onClick: (inputs: ResearchParameterInputs) => void;
+  onClear: () => void;
 }
 
 const ResearchParameterInputs: React.FC<ResearchParameterInputsProps> = (
   props
 ) => {
+  const [openDialog, setOpenDialog] = React.useState(false);
+
   const [costPerSearch, setCostPerSearch] = React.useState(0.04);
   const [searchRadiusMiles, setSearchRadiusMiles] = React.useState(20.0);
   const [cityName, setCityName] = React.useState("");
+  const [searchBudget, setSearchBudget] = React.useState(700.0);
 
-  const onButtonClick = () => {
+  const handleButtonClick = () => {
+    setOpenDialog(true);
+  };
+
+  const handleDialogClose = () => {
+    setOpenDialog(false);
+  };
+
+  const handleDialogConfirm = () => {
     props.onClick({
       cityName,
       costPerSearch,
       searchRadiusMiles,
+      searchBudget,
     });
+    setOpenDialog(false);
   };
 
   const handleRadiusChange = (event: Event, value: number | number[]) => {
     setSearchRadiusMiles(value as number);
+    props.onClear();
+  };
+
+  const handleBudgetChange = (event: Event, value: number | number[]) => {
+    setSearchBudget(value as number);
+    props.onClear();
   };
 
   const handleCostPerSearchChange = (
@@ -44,6 +66,7 @@ const ResearchParameterInputs: React.FC<ResearchParameterInputsProps> = (
     child: React.ReactNode
   ) => {
     setCostPerSearch(parseFloat(event.target.value));
+    props.onClear();
   };
 
   const step = 0.005;
@@ -72,8 +95,23 @@ const ResearchParameterInputs: React.FC<ResearchParameterInputsProps> = (
         label="City Name"
         onChange={(event) => {
           setCityName(event.target.value);
+          props.onClear();
         }}
         sx={{ marginBottom: "16px" }}
+      />
+      <Typography id="radius-slider" gutterBottom sx={{ marginBottom: "16px" }}>
+        Search Budget Per City (USD)
+      </Typography>
+      <Slider
+        value={searchBudget}
+        onChange={handleBudgetChange}
+        min={100.0}
+        max={1000.0}
+        step={50.0}
+        aria-labelledby="radius-slider"
+        valueLabelDisplay="auto"
+        valueLabelFormat={(value) => `$${value.toFixed(2)}`}
+        sx={{ marginBottom: "16px", width: "300px" }}
       />
       <Typography id="radius-slider" gutterBottom sx={{ marginBottom: "16px" }}>
         Desired Search Radius (mi)
@@ -111,11 +149,17 @@ const ResearchParameterInputs: React.FC<ResearchParameterInputsProps> = (
       <Button
         variant="contained"
         component="label"
-        onClick={onButtonClick}
+        onClick={handleButtonClick}
         sx={{ marginBottom: "16px" }}
       >
         Analyze
       </Button>
+      <ConfirmationDialog
+        open={openDialog}
+        onClose={handleDialogClose}
+        onConfirm={handleDialogConfirm}
+        message="Are you sure you want to proceed? This will make Google API calls and may incur costs."
+      />
     </Box>
   );
 };

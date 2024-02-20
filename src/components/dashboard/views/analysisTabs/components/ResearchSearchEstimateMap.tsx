@@ -3,106 +3,27 @@ import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
 import { Data } from "plotly.js";
 import { DataMaps } from "./CsvDataUploader";
-import {
-  Coordinates,
-  Grid,
-  getCityCenterCoordinates,
-  getGridCoordinates,
-} from "utils/demographics";
-import GooglePlacesAPI from "utils/google_places";
-import {
-  MAX_COST_PER_CITY,
-  METERS_PER_KILOMETER,
-  METERS_PER_MILE,
-} from "../logic/constants";
-import { calculateCostFromResults } from "../logic/places_coverage";
+import { Coordinates, getCityCenterCoordinates } from "utils/demographics";
 import { HEADER_TITLES } from "utils/constants";
 import { Box, Divider, Typography, useTheme } from "@mui/material";
+import {
+  GridSearchResults,
+  findMaxGridSearchResultsWithinBudget,
+} from "../logic/places_coverage";
 
 interface ResearchSearchEstimateMapProps {
   dataMaps: DataMaps;
   costPerSearch: number;
   cityName: string;
   searchRadiusMeters: number;
+  searchBudget: number;
   onMapComplete?: (gridSearchResults: GridSearchResults) => void;
-}
-
-interface GridSearchResults {
-  radiusMiles: number;
-  grid: Grid;
-  numberOfSquares: number;
-  totalCost: number;
-  gridWidthMeters: number;
 }
 
 interface PlotData {
   data: Data[];
   layout: any;
 }
-
-const findMaxRadiusWithinBudget = async (
-  centerLat: number,
-  centerLon: number,
-  initialRadiusMeters: number,
-  costPerSearch: number
-): Promise<GridSearchResults> => {
-  let radiusMeters = initialRadiusMeters;
-  let totalCost = MAX_COST_PER_CITY + 1;
-  let grid: Grid = [];
-  let numberOfSquares = 0;
-
-  const googlePlacesApi: GooglePlacesAPI = new GooglePlacesAPI(
-    process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "",
-    false
-  );
-
-  const maxGridResolutionWidthMeters =
-    await googlePlacesApi.findMaximumViewpointWidth(
-      centerLat,
-      centerLon,
-      "All Restaurants"
-    );
-
-  console.log(`Max viewpoint width: ${maxGridResolutionWidthMeters}m`);
-
-  if (maxGridResolutionWidthMeters <= 0) {
-    console.error("Error: Unable to find maximum viewpoint width");
-    return {
-      radiusMiles: 0,
-      grid: [],
-      numberOfSquares: 0,
-      totalCost: 0,
-      gridWidthMeters: 0,
-    };
-  }
-
-  while (totalCost > MAX_COST_PER_CITY && radiusMeters > METERS_PER_KILOMETER) {
-    ({ numberOfSquares, totalCost } = calculateCostFromResults(
-      maxGridResolutionWidthMeters,
-      costPerSearch,
-      radiusMeters,
-      false
-    ));
-    radiusMeters -= METERS_PER_KILOMETER;
-  }
-  grid = getGridCoordinates(
-    centerLat,
-    centerLon,
-    radiusMeters,
-    maxGridResolutionWidthMeters
-  );
-  const radiusMiles = radiusMeters / METERS_PER_MILE;
-
-  console.log(`Final radius: ${radiusMiles.toFixed(2)} miles`);
-  console.log(`Final cost: $${totalCost}`);
-  return {
-    radiusMiles,
-    grid,
-    numberOfSquares,
-    totalCost,
-    gridWidthMeters: maxGridResolutionWidthMeters,
-  };
-};
 
 const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
   props
@@ -119,6 +40,7 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
   const cityName = props.cityName;
   const searchRadiusMeters = props.searchRadiusMeters;
   const costPerSearch = props.costPerSearch;
+  const searchBudget = props.searchBudget;
 
   const [subText, setSubText] = useState("");
   const [gridSearchResults, setGridSearchResults] = useState<GridSearchResults>(
@@ -160,18 +82,24 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
   useEffect(() => {
     const fetchFindMaxRadiusWithinBudget = async () => {
       if (cityCenterCoordinates) {
-        const gridSearchResults = await findMaxRadiusWithinBudget(
+        const gridSearchResults = await findMaxGridSearchResultsWithinBudget(
           cityCenterCoordinates.latitude,
           cityCenterCoordinates.longitude,
           searchRadiusMeters,
-          costPerSearch
+          costPerSearch,
+          searchBudget
         );
         setGridSearchResults(gridSearchResults);
       }
     };
 
     fetchFindMaxRadiusWithinBudget();
-  }, [memoizedCityCenterCoordinates, searchRadiusMeters, costPerSearch]);
+  }, [
+    memoizedCityCenterCoordinates,
+    searchRadiusMeters,
+    costPerSearch,
+    searchBudget,
+  ]);
 
   // Plot the grid search results
   useEffect(() => {
@@ -285,5 +213,3 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
 };
 
 export default ResearchSearchEstimateMap;
-
-export type { GridSearchResults };
