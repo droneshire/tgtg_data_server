@@ -193,6 +193,7 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
 
     const dataLocal: Data[] = [
       {
+        name: "Search Grid",
         type: "scattermapbox",
         lat: gridSearchResults.grid.map((coord) => coord[0]),
         lon: gridSearchResults.grid.map((coord) => coord[1]),
@@ -203,6 +204,7 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
         },
       },
       {
+        name: "Stores",
         type: "scattermapbox",
         text: zippedArray,
         lon: names.map((key) => {
