@@ -23,81 +23,69 @@ const ResearchCostTable: React.FC<ResearchCostTableProps> = (props) => {
 
   return (
     <>
-      <Box
-        sx={{
-          flex: 1,
-          minWidth: "250px",
-          flexDirection: "column",
-          width: "300px",
-          alignItems: "left",
-          marginLeft: "auto",
-          marginRight: "auto",
-        }}
-      >
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead
-              style={{
-                backgroundColor: mainColor,
-                color: "white",
-                fontWeight: "bold",
-                textAlign: "left",
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead
+            style={{
+              backgroundColor: mainColor,
+              color: "white",
+              fontWeight: "bold",
+              textAlign: "left",
+            }}
+          >
+            <TableRow
+              sx={{
+                marginLeft: "1rem",
+                "& > *": {
+                  color: "white",
+                },
               }}
             >
-              <TableRow
-                sx={{
-                  marginLeft: "1rem",
-                  "& > *": {
-                    color: "white",
-                  },
-                }}
-              >
-                <TableCell> Description </TableCell>
-                <TableCell> Value </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              <TableRow
-                sx={{
-                  marginLeft: "1rem",
-                  "& > *": {
-                    textAlign: "left",
-                  },
-                }}
-              >
-                <TableCell>Estimated Cost</TableCell>
-                <TableCell>${costResults.totalCost.toFixed(2)}</TableCell>
-              </TableRow>
-              <TableRow
-                sx={{
-                  marginLeft: "1rem",
-                  "& > *": {
-                    textAlign: "left",
-                  },
-                }}
-              >
-                <TableCell>Estimated Searches</TableCell>
-                <TableCell>{costResults.numberOfSquares.toFixed(0)}</TableCell>
-              </TableRow>
-              <TableRow
-                sx={{
-                  marginLeft: "1rem",
-                  "& > *": {
-                    textAlign: "left",
-                  },
-                }}
-              >
-                <TableCell>Estimated Coverage (m²)</TableCell>
-                <TableCell>
-                  {Number(
-                    costResults.totalAreaMeters.toFixed(0)
-                  ).toLocaleString()}
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box>
+              <TableCell> Description </TableCell>
+              <TableCell> Value </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow
+              sx={{
+                marginLeft: "1rem",
+                "& > *": {
+                  textAlign: "left",
+                },
+              }}
+            >
+              <TableCell>Estimated Cost</TableCell>
+              <TableCell>${costResults.totalCost.toFixed(2)}</TableCell>
+            </TableRow>
+            <TableRow
+              sx={{
+                marginLeft: "1rem",
+                "& > *": {
+                  textAlign: "left",
+                },
+              }}
+            >
+              <TableCell>Estimated Searches</TableCell>
+              <TableCell>{costResults.numberOfSquares.toFixed(0)}</TableCell>
+            </TableRow>
+            <TableRow
+              sx={{
+                marginLeft: "1rem",
+                "& > *": {
+                  textAlign: "left",
+                },
+              }}
+            >
+              <TableCell>Estimated Coverage (m²)</TableCell>
+              <TableCell>
+                {Number(
+                  costResults.totalAreaMeters.toFixed(0)
+                ).toLocaleString()}
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
     </>
   );
 };

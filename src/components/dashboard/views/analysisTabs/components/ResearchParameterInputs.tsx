@@ -23,7 +23,7 @@ interface ResearchParameterInputsProps {
 const ResearchParameterInputs: React.FC<ResearchParameterInputsProps> = (
   props
 ) => {
-  const [costPerSearch, setCostPerSearch] = React.useState(0.005);
+  const [costPerSearch, setCostPerSearch] = React.useState(0.04);
   const [searchRadiusMiles, setSearchRadiusMiles] = React.useState(20.0);
   const [cityName, setCityName] = React.useState("");
 
@@ -47,7 +47,7 @@ const ResearchParameterInputs: React.FC<ResearchParameterInputsProps> = (
   };
 
   const step = 0.005;
-  const max = 0.1;
+  const max = 0.15;
 
   const costPerClickValues = [];
   for (let value = 0.005; value <= max; value += step) {

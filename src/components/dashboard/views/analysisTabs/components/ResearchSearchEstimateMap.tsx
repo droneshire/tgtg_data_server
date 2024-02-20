@@ -9,9 +9,8 @@ import {
   getCityCenterCoordinates,
   getGridCoordinates,
 } from "utils/demographics";
-import GooglePlacesAPI, { TextSearchData } from "utils/google_places";
+import GooglePlacesAPI from "utils/google_places";
 import {
-  ADVANCED_FIELDS,
   MAX_COST_PER_CITY,
   METERS_PER_KILOMETER,
   METERS_PER_MILE,
@@ -25,6 +24,7 @@ interface ResearchSearchEstimateMapProps {
   costPerSearch: number;
   cityName: string;
   searchRadiusMeters: number;
+  onMapComplete?: (gridSearchResults: GridSearchResults) => void;
 }
 
 interface GridSearchResults {
@@ -53,7 +53,7 @@ const findMaxRadiusWithinBudget = async (
 
   const googlePlacesApi: GooglePlacesAPI = new GooglePlacesAPI(
     process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "",
-    true
+    false
   );
 
   const maxGridResolutionWidthMeters =
@@ -108,7 +108,6 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
   props
 ) => {
   const theme = useTheme();
-  const mainColor = theme.palette.primary.main;
   const secondaryColor = theme.palette.secondary.main;
 
   const [data, setData] = useState<PlotData>({
@@ -121,7 +120,6 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
   const searchRadiusMeters = props.searchRadiusMeters;
   const costPerSearch = props.costPerSearch;
 
-  const [displayPlot, setDisplayPlot] = useState(false);
   const [subText, setSubText] = useState("");
   const [gridSearchResults, setGridSearchResults] = useState<GridSearchResults>(
     {
@@ -168,7 +166,6 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
           searchRadiusMeters,
           costPerSearch
         );
-        console.log(gridSearchResults);
         setGridSearchResults(gridSearchResults);
       }
     };
@@ -238,7 +235,9 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
     const layoutLocal = {
       autosize: true,
       hovermode: "closest",
-      title: `Search Grid for ${cityName} [${gridSearchResults.totalCost}]`,
+      title: `Search Grid for ${cityName} [$${gridSearchResults.totalCost.toFixed(
+        2
+      )}]`,
       mapbox: {
         bearing: 0,
         center: {
@@ -246,17 +245,19 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
           lon: cityCenterCoordinates?.longitude || -90,
         },
         pitch: 0,
-        zoom: 9,
+        zoom: 10,
         style: "open-street-map",
       },
     };
 
     setData({ data: dataLocal, layout: layoutLocal });
     setSubText(subText);
-    setDisplayPlot(true);
+    if (props.onMapComplete) {
+      props.onMapComplete(gridSearchResults);
+    }
   }, [storeMap, gridSearchResults]);
 
-  return displayPlot ? (
+  return (
     <>
       <Box
         sx={{
@@ -274,13 +275,15 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
             width: "100%",
           }}
         />
-        <Typography variant="caption">{subText}</Typography>
+        <Typography variant="body2" align="center">
+          {subText}
+        </Typography>
       </Box>
       <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
     </>
-  ) : (
-    <></>
   );
 };
 
 export default ResearchSearchEstimateMap;
+
+export type { GridSearchResults };

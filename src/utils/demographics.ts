@@ -17,7 +17,6 @@ function extractCity(address: string): string | null {
   let city: string | null = null;
   let zipCodeIndex: number | null = null;
 
-  console.log(address);
   for (let i = 0; i < parts.length; i++) {
     let part = parts[i].trim();
     if (part.includes("City of ")) {
@@ -53,7 +52,6 @@ async function getCityCenterCoordinates(
   try {
     const response = await fromAddress(cityName);
     const { lat, lng } = response.results[0].geometry.location;
-    console.log(lat, lng);
     return { latitude: lat, longitude: lng };
   } catch (error) {
     console.error(error);

@@ -8,7 +8,9 @@ import {
 import ResearchCostTable from "./ResearchCostTable";
 import ResearchParameterInputs from "./ResearchParameterInputs";
 import { METERS_PER_MILE } from "../logic/constants";
-import ResearchSearchEstimateMap from "./ResearchSearchEstimateMap";
+import ResearchSearchEstimateMap, {
+  GridSearchResults,
+} from "./ResearchSearchEstimateMap";
 
 interface ResearchCoverageProps {
   dataMaps: DataMaps;
@@ -23,6 +25,7 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({ dataMaps }) => {
 
   const [displayResearchResults, setDisplayResearchResults] =
     React.useState(false);
+  const [displaySearchMap, setDisplaySearchMap] = React.useState(false);
 
   const [costResults, setCostResults] = React.useState<CostResults>({
     numberOfSquares: 0,
@@ -38,15 +41,24 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({ dataMaps }) => {
     const updatedSearchRadiusMeters =
       inputs.searchRadiusMiles * METERS_PER_MILE;
 
-    const newCostResults: CostResults = calculateCostFromResults(
-      searchGridWidthMeters,
-      inputs.costPerSearch,
-      updatedSearchRadiusMeters,
-      true
-    );
-
-    setCostResults(newCostResults);
     setSearchRadiusMeters(updatedSearchRadiusMeters);
+    setDisplaySearchMap(true);
+  };
+
+  const handleMapComplete = (gridSearchResults: GridSearchResults) => {
+    const totalWidthMeters =
+      gridSearchResults.radiusMiles * METERS_PER_MILE * 2;
+    const totalAreaMeters = totalWidthMeters * totalWidthMeters;
+
+    const gridWidthMeters = gridSearchResults.gridWidthMeters;
+    const gridAreaMeters = gridWidthMeters * gridWidthMeters;
+
+    setCostResults({
+      numberOfSquares: gridSearchResults.numberOfSquares,
+      totalCost: gridSearchResults.totalCost,
+      searchBlockArea: gridAreaMeters,
+      totalAreaMeters: totalAreaMeters,
+    });
     setDisplayResearchResults(true);
   };
 
@@ -55,7 +67,7 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({ dataMaps }) => {
       <Box
         sx={{
           display: "flex",
-          flexDirection: "row",
+          flexDirection: "column",
           justifyContent: "space-between",
           alignItems: "flex-start",
           width: "100%",
@@ -66,18 +78,16 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({ dataMaps }) => {
         <ResearchParameterInputs
           onClick={handleAnalyzeClick}
         ></ResearchParameterInputs>
-        {displayResearchResults && (
-          <ResearchCostTable costResults={costResults}></ResearchCostTable>
-        )}
       </Box>
-      {displayResearchResults && (
+      {displaySearchMap && (
         <Box
           sx={{
             display: "flex",
-            flexDirection: "row",
+            flexDirection: "column",
             justifyContent: "space-between",
             alignItems: "flex-start",
             width: "100%",
+            height: "100%",
             gap: "20px",
             padding: "20px",
           }}
@@ -87,7 +97,24 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({ dataMaps }) => {
             dataMaps={dataMaps}
             costPerSearch={costPerSearch}
             searchRadiusMeters={searchRadiusMeters}
+            onMapComplete={handleMapComplete}
           ></ResearchSearchEstimateMap>
+        </Box>
+      )}
+      {displayResearchResults && (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            width: "100%",
+            margin: "auto",
+            gap: "20px",
+            padding: "20px",
+          }}
+        >
+          <ResearchCostTable costResults={costResults}></ResearchCostTable>
         </Box>
       )}
     </>

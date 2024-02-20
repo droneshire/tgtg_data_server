@@ -25,8 +25,6 @@ const DataSelectTab: FC<AnalysisTabsProps> = (props) => {
     if (props.onUpload) {
       props.onUpload(dataMaps);
     }
-
-    console.log("Updated stats for chart");
   };
 
   return (
