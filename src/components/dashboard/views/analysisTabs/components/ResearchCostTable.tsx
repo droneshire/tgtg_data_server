@@ -80,7 +80,7 @@ const ResearchCostTable: React.FC<ResearchCostTableProps> = (props) => {
                 },
               }}
             >
-              <TableCell>Single Search Size (m)</TableCell>
+              <TableCell>Single Search Box Width (m)</TableCell>
               <TableCell>
                 {Number(
                   Math.sqrt(costResults.searchBlockArea).toFixed(2)
