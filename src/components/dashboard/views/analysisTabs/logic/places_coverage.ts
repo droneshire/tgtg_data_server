@@ -121,5 +121,49 @@ const findMaxGridSearchResultsWithinBudget = async (
   };
 };
 
+function runGridSearch() => {
+  const kickOffCsvWorker = (file: File) => {
+    if (window.Worker) {
+      const worker = new Worker(new URL("workers/placesResearchWorker", import.meta.url));
+
+      worker.addEventListener("message", (e: MessageEvent) => {
+        const data = e.data;
+        const parsedData = transformData(data);
+        setParsing(false);
+        setFireStoreData("");
+        setSelectedItem("");
+
+        if (parsedData.storeMap.size === 0) {
+          alert("No data found in file.");
+          setAlertOpen(true);
+          return;
+        }
+        onUpload?.(parsedData);
+      });
+
+      worker.addEventListener("error", (e: ErrorEvent) => {
+        console.error("Error in worker: ", e.message);
+        setParsing(false);
+      });
+
+      setParsing(true);
+      if (fireStoreData === "") {
+        const reader = new FileReader();
+        reader.onload = (event: ProgressEvent<FileReader>) => {
+          if (event.target?.result) {
+            worker.postMessage(event.target.result.toString());
+          }
+        };
+        reader.readAsText(file);
+      } else {
+        worker.postMessage(fireStoreData);
+      }
+    } else {
+      setParsing(false);
+      console.warn("Your browser does not support Web Workers.");
+    }
+  };
+}
+
 export { calculateCostFromResults, findMaxGridSearchResultsWithinBudget };
 export type { CostResults, GridSearchResults };
