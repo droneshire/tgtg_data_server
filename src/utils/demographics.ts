@@ -11,7 +11,12 @@ interface Viewport {
   high: Coordinates;
 }
 
-type Grid = [number, number][];
+interface GridSquare {
+  center: Coordinates;
+  viewport: Viewport;
+}
+
+type Grid = GridSquare[];
 
 function extractCity(address: string): string | null {
   const parts = address.split(",");
@@ -155,17 +160,30 @@ function getGridCoordinates(
       const lat = centerLat - latAdjustment + latStepSize / 2 + i * latStepSize;
       const lon = centerLon - lonAdjustment + lonStepSize / 2 + j * lonStepSize;
 
+      const gridSquare = {
+        center: { latitude: lat, longitude: lon },
+        viewport: {
+          low: {
+            latitude: lat - latStepSize / 2,
+            longitude: lon - lonStepSize / 2,
+          },
+          high: {
+            latitude: lat + latStepSize / 2,
+            longitude: lon + lonStepSize / 2,
+          },
+        },
+      };
       // This api call takes too long to run for every grid point so disabling
       if (false) {
         if (checkForWater) {
           isWater(lat, lon).then((water) => {
             if (!water) {
-              grid.push([lat, lon]);
+              grid.push(gridSquare);
             }
           });
         }
       } else {
-        grid.push([lat, lon]);
+        grid.push(gridSquare);
       }
     }
   }

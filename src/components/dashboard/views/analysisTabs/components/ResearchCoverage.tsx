@@ -1,26 +1,34 @@
 import React from "react";
 import { DataMaps } from "./CsvDataUploader";
-import { Box, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Typography } from "@mui/material";
 import { CostResults, GridSearchResults } from "../logic/places_coverage";
 import ResearchCostTable from "./ResearchCostTable";
 import ResearchParameterInputs from "./ResearchParameterInputs";
 import { METERS_PER_MILE } from "../logic/constants";
 import ResearchSearchEstimateMap from "./ResearchSearchEstimateMap";
+import { Grid } from "utils/demographics";
+import ConfirmationDialog from "components/utils/confirmationDialog";
+import { DocumentSnapshot, FieldPath, updateDoc } from "firebase/firestore";
+import { ClientConfig } from "types/user";
 
 interface ResearchCoverageProps {
   dataMaps: DataMaps;
+  userConfigSnapshot: DocumentSnapshot<ClientConfig>;
 }
 
-const ResearchCoverage: React.FC<ResearchCoverageProps> = ({ dataMaps }) => {
+const ResearchCoverage: React.FC<ResearchCoverageProps> = ({
+  dataMaps,
+  userConfigSnapshot,
+}) => {
+  const searches = userConfigSnapshot?.data()?.searches;
   const [costPerSearch, setCostPerSearch] = React.useState(0.005);
   const [searchRadiusMeters, setSearchRadiusMeters] = React.useState(0);
   const [cityName, setCityName] = React.useState("");
+  const [cityCenter, setCityCenter] = React.useState({
+    latitude: 0,
+    longitude: 0,
+  });
   const [searchBudget, setSearchBudget] = React.useState(0);
-
-  const [displayResearchResults, setDisplayResearchResults] =
-    React.useState(false);
-  const [displaySearchMap, setDisplaySearchMap] = React.useState(false);
-
   const [costResults, setCostResults] = React.useState<CostResults>({
     numberOfSquares: 0,
     totalCost: 0,
@@ -28,6 +36,17 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({ dataMaps }) => {
     totalAreaMeters: 0,
     searchRadiusMiles: 0,
   });
+  const [grid, setGrid] = React.useState<Grid>([]);
+
+  const [displayResearchResults, setDisplayResearchResults] =
+    React.useState(false);
+  const [displaySearchMap, setDisplaySearchMap] = React.useState(false);
+  const [buttonDisabled, setButtonDisabled] = React.useState(false);
+  const [openDialog, setOpenDialog] = React.useState(false);
+
+  if (!searches) {
+    return <CircularProgress />;
+  }
 
   const handleAnalyzeClick = (inputs: ResearchParameterInputs) => {
     setCostPerSearch(inputs.costPerSearch);
@@ -51,6 +70,9 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({ dataMaps }) => {
       totalAreaMeters: 0,
       searchRadiusMiles: 0,
     });
+    setGrid([]);
+    setCityName("");
+    setCityCenter({ latitude: 0, longitude: 0 });
   };
 
   const handleMapComplete = (gridSearchResults: GridSearchResults) => {
@@ -68,7 +90,36 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({ dataMaps }) => {
       totalAreaMeters: totalAreaMeters,
       searchRadiusMiles: gridSearchResults.radiusMiles,
     });
+    setGrid(gridSearchResults.grid);
+    setCityCenter(gridSearchResults.cityCenter);
     setDisplayResearchResults(true);
+  };
+
+  const handleTriggerSearchButtonClick = () => {
+    setOpenDialog(true);
+  };
+
+  const handleDialogClose = () => {
+    setOpenDialog(false);
+  };
+
+  const handleDialogConfirm = () => {
+    console.log("Triggering search");
+    updateDoc(userConfigSnapshot.ref, new FieldPath("searchContext"), {
+      city: cityName,
+      cityCenter: cityCenter,
+      radiusMiles: costResults.searchRadiusMiles,
+      totalCost: costResults.totalCost,
+      numberOfSquares: costResults.numberOfSquares,
+      gridWidthMeters: costResults.searchBlockArea,
+      triggerSearch: true,
+      autoUpload: true,
+    });
+    setButtonDisabled(true);
+    setTimeout(() => {
+      setButtonDisabled(false);
+    }, 10000);
+    setOpenDialog(false);
   };
 
   return (
@@ -132,6 +183,21 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({ dataMaps }) => {
             Estimated Search Cost
           </Typography>
           <ResearchCostTable costResults={costResults} />
+          <Button
+            variant="contained"
+            component="label"
+            disabled={buttonDisabled}
+            onClick={handleTriggerSearchButtonClick}
+            sx={{ marginBottom: "16px", width: "20%" }}
+          >
+            Kick off Search
+          </Button>
+          <ConfirmationDialog
+            open={openDialog}
+            onClose={handleDialogClose}
+            onConfirm={handleDialogConfirm}
+            message="Are you sure you want to proceed? This will make Google API calls and may incur costs."
+          />
         </Box>
       )}
     </>

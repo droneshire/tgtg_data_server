@@ -6,6 +6,7 @@ import ResearchCoverage from "./components/ResearchCoverage";
 const ProximityTab: React.FC<AnalysisTabsProps> = (props) => {
   const dataMaps = props.dataMaps;
   const displayChart = props.displayChart;
+  const userConfigSnapshot = props.userConfigSnapshot;
 
   return (
     <>
@@ -14,7 +15,10 @@ const ProximityTab: React.FC<AnalysisTabsProps> = (props) => {
       </Typography>
       {displayChart && (
         <>
-          <ResearchCoverage dataMaps={dataMaps}></ResearchCoverage>
+          <ResearchCoverage
+            dataMaps={dataMaps}
+            userConfigSnapshot={userConfigSnapshot}
+          ></ResearchCoverage>
         </>
       )}
     </>

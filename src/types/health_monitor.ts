@@ -1,6 +1,6 @@
-import { Timestamp } from "firebase/firestore"
+import { Timestamp } from "firebase/firestore";
 
 export interface HealthMonitorConfig {
-    ping: Timestamp;
-    reset: boolean;
-};
+  heartbeat: Timestamp;
+  reset: boolean;
+}

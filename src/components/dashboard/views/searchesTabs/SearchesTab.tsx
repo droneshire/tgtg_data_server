@@ -24,7 +24,7 @@ import AttachEmailIcon from "@mui/icons-material/AttachEmail";
 import ContentCutIcon from "@mui/icons-material/ContentCut";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import { ClientConfig, Region, hourDivisors } from "types/user";
+import { ClientConfig, hourDivisors } from "types/user";
 import { Box } from "@mui/system";
 import {
   FontAwesomeIcon,
@@ -44,7 +44,6 @@ import {
   FirestoreBackedSlider,
   FirestoreBackedTimeField,
 } from "components/utils/forms";
-import { useValueWithTimezone } from "@mui/x-date-pickers/internals/hooks/useValueWithTimezone";
 
 const TrackingIcon: FC<Omit<FontAwesomeIconProps, "icon">> = (props) => (
   <FontAwesomeIcon icon={faChartSimple} {...props} />

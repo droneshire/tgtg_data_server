@@ -41,7 +41,7 @@ export const BackendTab: FC<{
       }
       setHeartbeatSeconds(newHeartbeat);
     }
-  }, [buttonDisabled, heartbeat, heartbeatSeconds]);
+  }, [heartbeat, heartbeatSeconds, timeBetweenHeartbeatSeconds]);
 
   return (
     <>

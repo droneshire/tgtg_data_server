@@ -47,6 +47,7 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
       numberOfSquares: 0,
       totalCost: 0,
       gridWidthMeters: 0,
+      cityCenter: { latitude: 0, longitude: 0 },
     }
   );
   const [cityCenterCoordinates, setCityCenterCoordinates] =
@@ -101,7 +102,6 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
   // Plot the grid search results
   useEffect(() => {
     if (gridSearchResults.grid.length <= 0) {
-      console.warn("No grid search results to plot");
       return;
     }
     const names: string[] = Array.from(storeMap.keys()).sort();
@@ -118,8 +118,8 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
       {
         name: "Search Grid",
         type: "scattermapbox",
-        lat: gridSearchResults.grid.map((coord) => coord[0]),
-        lon: gridSearchResults.grid.map((coord) => coord[1]),
+        lat: gridSearchResults.grid.map((coord) => coord.center.latitude),
+        lon: gridSearchResults.grid.map((coord) => coord.center.longitude),
         mode: "markers",
         marker: {
           size: 2,

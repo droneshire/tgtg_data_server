@@ -1,4 +1,4 @@
-import { Grid, getGridCoordinates } from "utils/demographics";
+import { Coordinates, Grid, getGridCoordinates } from "utils/demographics";
 import { METERS_PER_KILOMETER, METERS_PER_MILE } from "./constants";
 import GooglePlacesAPI from "utils/google_places";
 
@@ -54,6 +54,7 @@ interface GridSearchResults {
   numberOfSquares: number;
   totalCost: number;
   gridWidthMeters: number;
+  cityCenter: Coordinates;
 }
 
 const findMaxGridSearchResultsWithinBudget = async (
@@ -90,6 +91,7 @@ const findMaxGridSearchResultsWithinBudget = async (
       numberOfSquares: 0,
       totalCost: 0,
       gridWidthMeters: 0,
+      cityCenter: { latitude: 0, longitude: 0 },
     };
   }
 
@@ -119,6 +121,7 @@ const findMaxGridSearchResultsWithinBudget = async (
     numberOfSquares,
     totalCost,
     gridWidthMeters: maxGridResolutionWidthMeters,
+    cityCenter: { latitude: centerLat, longitude: centerLon },
   };
 };
 

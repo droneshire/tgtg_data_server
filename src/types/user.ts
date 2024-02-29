@@ -1,3 +1,5 @@
+import { Coordinates, Grid } from "utils/demographics";
+
 export enum ClientAction {
   NONE = "NONE",
   DELETE = "DELETE",
@@ -51,9 +53,21 @@ export interface Preferences {
   searchTimeZone: SearchTimeZone;
 }
 
+export interface SearchContext {
+  city: string;
+  cityCenter: Coordinates;
+  radiusMiles: number;
+  totalCost: number;
+  numberOfSquares: number;
+  gridWidthMeters: number;
+  triggerSearch: boolean;
+  autoUpload: boolean;
+}
+
 export interface ClientConfig {
   preferences: Preferences;
   searches: Searches;
+  searchContext: SearchContext;
 }
 
 export const DEFAULT_USER_CONFIG: ClientConfig = {
@@ -76,4 +90,15 @@ export const DEFAULT_USER_CONFIG: ClientConfig = {
     hoursBetweenCollection: Math.min(...hourDivisors),
     collectionTimeStart: 6,
   },
-}
+  searchContext: {
+    city: "",
+    cityCenter: { latitude: 0, longitude: 0 },
+    grid: [],
+    radiusMiles: 0,
+    totalCost: 0,
+    numberOfSquares: 0,
+    gridWidthMeters: 0,
+    triggerSearch: false,
+    autoUpload: false,
+  },
+};
