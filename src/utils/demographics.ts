@@ -156,12 +156,16 @@ function getGridCoordinates(
       const lon = centerLon - lonAdjustment + lonStepSize / 2 + j * lonStepSize;
 
       // This api call takes too long to run for every grid point so disabling
-      if (false && checkForWater) {
-        isWater(lat, lon).then((water) => {
-          if (!water) {
-            grid.push([lat, lon]);
-          }
-        });
+      if (false) {
+        if (checkForWater) {
+          isWater(lat, lon).then((water) => {
+            if (!water) {
+              grid.push([lat, lon]);
+            }
+          });
+        }
+      } else {
+        grid.push([lat, lon]);
       }
     }
   }

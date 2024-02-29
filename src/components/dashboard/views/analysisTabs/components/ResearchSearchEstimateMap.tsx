@@ -101,6 +101,7 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
   // Plot the grid search results
   useEffect(() => {
     if (gridSearchResults.grid.length <= 0) {
+      console.warn("No grid search results to plot");
       return;
     }
     const names: string[] = Array.from(storeMap.keys()).sort();
