@@ -1,4 +1,5 @@
 import { fromAddress } from "react-geocode";
+import { isWater } from "./maps";
 
 interface Coordinates {
   latitude: number;
@@ -122,7 +123,8 @@ function getGridCoordinates(
   centerLat: number,
   centerLon: number,
   radiusMeters: number,
-  gridSideMeters: number
+  gridSideMeters: number,
+  checkForWater: boolean = false
 ): Grid {
   /**
    * Given a center (lat, lon), radius in meters, and grid square area in meters,
@@ -152,7 +154,15 @@ function getGridCoordinates(
     for (let j = 0; j < lonSteps - 1; j++) {
       const lat = centerLat - latAdjustment + latStepSize / 2 + i * latStepSize;
       const lon = centerLon - lonAdjustment + lonStepSize / 2 + j * lonStepSize;
-      grid.push([lat, lon]);
+
+      // This api call takes too long to run for every grid point so disabling
+      if (false && checkForWater) {
+        isWater(lat, lon).then((water) => {
+          if (!water) {
+            grid.push([lat, lon]);
+          }
+        });
+      }
     }
   }
 
