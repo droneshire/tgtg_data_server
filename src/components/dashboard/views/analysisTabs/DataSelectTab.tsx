@@ -1,22 +1,10 @@
-import { FC, useMemo } from "react";
+import { FC } from "react";
 import { Typography, Divider, FormGroup } from "@mui/material";
 import CsvDataUploader, { DataMaps } from "./components/CsvDataUploader";
-import { SearchSpec } from "components/dashboard/views/searchesTabs/Search";
 
 import AnalysisTabsProps from "./analysisTabProps";
 
 const DataSelectTab: FC<AnalysisTabsProps> = (props) => {
-  const searches = props.userConfigSnapshot?.data()?.searches;
-
-  const searchItems: SearchSpec[] = useMemo(() => {
-    const items: SearchSpec[] = [];
-    Object.entries(searches?.items || {}).forEach((t) => {
-      const [searchId, item] = t;
-      items.push({ searchId, ...item });
-    });
-    return items;
-  }, [searches]);
-
   const onUpload = (dataMaps: DataMaps) => {
     if (!!!dataMaps) {
       return;
@@ -38,10 +26,7 @@ const DataSelectTab: FC<AnalysisTabsProps> = (props) => {
         that contains addresses to be analyzed or select from active searches.
       </Typography>
       <FormGroup>
-        <CsvDataUploader
-          onUpload={onUpload}
-          searchItems={searchItems}
-        ></CsvDataUploader>
+        <CsvDataUploader onUpload={onUpload}></CsvDataUploader>
       </FormGroup>
       <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
     </>

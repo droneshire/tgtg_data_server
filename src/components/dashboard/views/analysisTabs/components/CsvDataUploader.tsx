@@ -1,21 +1,15 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Box,
   Button,
   CircularProgress,
-  Fade,
-  Menu,
-  MenuItem,
   Snackbar,
   Typography,
 } from "@mui/material";
 import { CsvDataRow } from "workers/csvWorker";
 import { HEADER_TITLES } from "utils/constants";
-import { SearchSpec } from "components/dashboard/views/searchesTabs/Search";
-import { ArrowDropDown } from "@mui/icons-material";
-import { myStorage } from "firebaseApp";
-import { ref, getDownloadURL } from "firebase/storage";
+import FirestoreFileSelect from "./FirestoreFileSelect";
 
 export type DataMap = Map<string, CsvDataRow[]>;
 
@@ -26,7 +20,6 @@ export interface DataMaps {
 
 interface CsvUploaderProps {
   onUpload?: (dataMaps: DataMaps) => void;
-  searchItems: SearchSpec[];
 }
 
 const transformData = (data: CsvDataRow[]): DataMaps => {
@@ -72,49 +65,22 @@ const transformData = (data: CsvDataRow[]): DataMaps => {
   return { storeMap, dateMap };
 };
 
-const CsvDataUploader: React.FC<CsvUploaderProps> = ({
-  onUpload,
-  searchItems,
-}) => {
+const CsvDataUploader: React.FC<CsvUploaderProps> = ({ onUpload }) => {
   const [parsing, setParsing] = useState(false);
-  const [alertOpen, setAlertOpen] = useState(false);
 
   // Firebase Storage related items
-  const [selectedItem, setSelectedItem] = useState("");
   const [fireStoreData, setFireStoreData] = useState("");
-  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(
-    null
-  );
-  const openMenu = Boolean(menuAnchorEl);
+  const [alertOpen, setAlertOpen] = useState(false);
 
-  const handleMenuItemClick = (name: string) => () => {
-    handleMenuButtonClose(name);
-  };
-
-  const handleMenuButtonClick = (event: React.MouseEvent<HTMLElement>) => {
-    setMenuAnchorEl(event.currentTarget);
-  };
-  const handleMenuButtonClose = (name: string) => {
-    setMenuAnchorEl(null);
-    console.log("Selected search: ", name);
-    setSelectedItem(name);
+  const handleMenuItemClick = (fileData: string) => () => {
+    setFireStoreData(fileData);
+    console.log("Selected file: ", fileData);
   };
 
   const handleAlertClose = () => {
     setAlertOpen(false);
-    setSelectedItem("");
     setFireStoreData("");
   };
-
-  const readFireStoreCsv = useCallback(async (url: string) => {
-    try {
-      const response = await fetch(url);
-      const text = await response.text();
-      setFireStoreData(text);
-    } catch (error) {
-      console.error("Error reading firststore file:", error);
-    }
-  }, []);
 
   const kickOffCsvWorker = (file: File) => {
     if (window.Worker) {
@@ -125,7 +91,6 @@ const CsvDataUploader: React.FC<CsvUploaderProps> = ({
         const parsedData = transformData(data);
         setParsing(false);
         setFireStoreData("");
-        setSelectedItem("");
 
         if (parsedData.storeMap.size === 0) {
           alert("No data found in file.");
@@ -168,36 +133,6 @@ const CsvDataUploader: React.FC<CsvUploaderProps> = ({
   };
 
   useEffect(() => {
-    if (selectedItem !== "") {
-      console.log("Downloading file from firestore");
-      const item = searchItems.find((item) => item.searchId === selectedItem);
-
-      if (!item || !!!item.uuid) {
-        setAlertOpen(true);
-        console.error("Unable to find search item");
-        return;
-      }
-
-      const userBasePath = item.searchId;
-      const searchUuid = `tgtg_search_${item.uuid}`;
-      const fileName = item.numResults.toString() + ".csv";
-      const pathToStorageFile = `${userBasePath}/${searchUuid}/${fileName}`;
-      const fileRef = ref(myStorage, pathToStorageFile);
-
-      console.log("Downloading file from firestore: ", pathToStorageFile);
-
-      getDownloadURL(fileRef)
-        .then((url) => {
-          readFireStoreCsv(url);
-        })
-        .catch((error) => {
-          setAlertOpen(true);
-          console.error("Error downloading file:", error);
-        });
-    }
-  }, [selectedItem, readFireStoreCsv]);
-
-  useEffect(() => {
     if (fireStoreData !== "") {
       kickOffCsvWorker(new File([fireStoreData], "firestore.csv"));
     }
@@ -214,37 +149,12 @@ const CsvDataUploader: React.FC<CsvUploaderProps> = ({
           <Typography variant="body1" gutterBottom>
             or
           </Typography>
-          <Button
-            id="fade-button"
-            aria-controls={openMenu ? "fade-menu" : undefined}
-            aria-haspopup="true"
-            aria-expanded={openMenu ? "true" : undefined}
-            onClick={handleMenuButtonClick}
-            variant="contained"
+          <FirestoreFileSelect
+            handleOnClick={handleMenuItemClick}
+            directoryName="ryeager12@gmail.com"
             disabled={parsing}
-          >
-            {parsing ? <CircularProgress size={24} /> : "Select Search"}
-            <ArrowDropDown />
-          </Button>
+          />
         </Box>
-        <Menu
-          id="fade-menu-stores"
-          MenuListProps={{
-            "aria-labelledby": "fade-button",
-          }}
-          anchorEl={menuAnchorEl}
-          open={openMenu}
-          onClose={() => {
-            handleMenuButtonClose("");
-          }}
-          TransitionComponent={Fade}
-        >
-          {searchItems.map((item, index) => (
-            <MenuItem key={index} onClick={handleMenuItemClick(item.searchId)}>
-              {item.searchId}
-            </MenuItem>
-          ))}
-        </Menu>
         <Snackbar
           open={alertOpen}
           autoHideDuration={5000}
