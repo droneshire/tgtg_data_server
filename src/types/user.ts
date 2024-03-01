@@ -93,7 +93,6 @@ export const DEFAULT_USER_CONFIG: ClientConfig = {
   searchContext: {
     city: "",
     cityCenter: { latitude: 0, longitude: 0 },
-    grid: [],
     radiusMiles: 0,
     totalCost: 0,
     numberOfSquares: 0,
