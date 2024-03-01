@@ -32,7 +32,10 @@ function FirestoreNameToLabel(name: string): string {
     return name;
   }
 
-  const date = sections[sections.length - 1].split(".")[0];
+  const date = sections
+    .slice(sections.length - 2, sections.length - 1)
+    .join("_")
+    .split(".")[0];
   const searchName = sections[2];
   const lattitude = sections[3];
   const longitude = sections[4];
