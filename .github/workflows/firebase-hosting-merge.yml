@@ -21,6 +21,7 @@ jobs:
           echo REACT_APP_ADMIN_USERS='${{ secrets.REACT_APP_ADMIN_USERS }}' >> .env
           echo REACT_APP_GEOCODE_API_KEY='${{ secrets.REACT_APP_GEOCODE_API_KEY }}' >> .env
           echo REACT_APP_GOOGLE_MAPS_API_KEY='${{ secrets.REACT_APP_GOOGLE_MAPS_API_KEY }}' >> .env
+          echo REACT_APP_ISITWATER_API_KEY='${{ secrets.REACT_APP_ISITWATER_API_KEY }}' >> .env
           cat .env
           npm ci &&
           npm run build
