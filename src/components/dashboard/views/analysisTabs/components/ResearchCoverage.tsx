@@ -114,6 +114,8 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({
       gridWidthMeters: costResults.searchBlockArea,
       triggerSearch: true,
       autoUpload: true,
+      costResults: searchBudget,
+      maxCostPerCity: costPerSearch,
     });
     setButtonDisabled(true);
     setTimeout(() => {

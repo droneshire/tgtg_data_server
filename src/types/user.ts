@@ -62,6 +62,8 @@ export interface SearchContext {
   gridWidthMeters: number;
   triggerSearch: boolean;
   autoUpload: boolean;
+  maxCostPerCity: number;
+  costPerSquare: number;
 }
 
 export interface ClientConfig {
@@ -99,5 +101,7 @@ export const DEFAULT_USER_CONFIG: ClientConfig = {
     gridWidthMeters: 0,
     triggerSearch: false,
     autoUpload: false,
+    maxCostPerCity: 0,
+    costPerSquare: 0,
   },
 };
