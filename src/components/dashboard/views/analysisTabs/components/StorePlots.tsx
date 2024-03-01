@@ -63,6 +63,7 @@ export const StoreMaps: React.FC<StoreMapProps> = ({ storeMap }) => {
       storeMap.values().next().value[0][HEADER_TITLES.longitude] || -90;
 
     const scaleFactor: number = 0.5;
+    const defaultMinSize: number = 5;
     const dataLocal: Data[] = [
       {
         type: "scattermapbox",
@@ -78,8 +79,10 @@ export const StoreMaps: React.FC<StoreMapProps> = ({ storeMap }) => {
         marker: {
           color: mainColor,
           size: counts
-            ? counts.map((count) => Math.max(Math.sqrt(count) * scaleFactor, 1))
-            : 1,
+            ? counts.map((count) =>
+                Math.max(Math.sqrt(count) * scaleFactor, defaultMinSize)
+              )
+            : defaultMinSize,
         },
       },
     ];

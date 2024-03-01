@@ -113,7 +113,7 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
       (name, index) => `${name} (${counts[index]})`
     );
     const scaleFactor: number = 0.5;
-
+    const defaultMinSize: number = 10;
     const dataLocal: Data[] = [
       {
         name: "Search Grid",
@@ -147,8 +147,10 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
           cmin: 0,
           cmax: 1,
           size: counts
-            ? counts.map((count) => Math.max(Math.sqrt(count) * scaleFactor, 1))
-            : 1,
+            ? counts.map((count) =>
+                Math.max(Math.sqrt(count) * scaleFactor, defaultMinSize)
+              )
+            : defaultMinSize,
         },
       },
     ];

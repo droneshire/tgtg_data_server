@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Alert,
   Box,
@@ -70,12 +70,14 @@ const CsvDataUploader: React.FC<CsvUploaderProps> = ({ onUpload }) => {
 
   // Firebase Storage related items
   const [fireStoreData, setFireStoreData] = useState("");
+  const [triggerWorker, setTriggerWorker] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
 
-  const handleMenuItemClick = (fileData: string) => () => {
+  const handleFirestoreFileSelectClick = useCallback((fileData: string) => {
     setFireStoreData(fileData);
-    console.log("Selected file: ", fileData);
-  };
+    setTriggerWorker(true);
+    console.log("File selected from Firestore");
+  }, []);
 
   const handleAlertClose = () => {
     setAlertOpen(false);
@@ -115,6 +117,7 @@ const CsvDataUploader: React.FC<CsvUploaderProps> = ({ onUpload }) => {
         };
         reader.readAsText(file);
       } else {
+        setFireStoreData("");
         worker.postMessage(fireStoreData);
       }
     } else {
@@ -133,10 +136,11 @@ const CsvDataUploader: React.FC<CsvUploaderProps> = ({ onUpload }) => {
   };
 
   useEffect(() => {
-    if (fireStoreData !== "") {
+    if (triggerWorker && fireStoreData !== "") {
       kickOffCsvWorker(new File([fireStoreData], "firestore.csv"));
+      setTriggerWorker(false);
     }
-  }, [fireStoreData]);
+  }, [fireStoreData, triggerWorker]);
 
   return (
     <div>
@@ -150,7 +154,9 @@ const CsvDataUploader: React.FC<CsvUploaderProps> = ({ onUpload }) => {
             or
           </Typography>
           <FirestoreFileSelect
-            handleOnClick={handleMenuItemClick}
+            handleOnClick={(firestoreData) =>
+              handleFirestoreFileSelectClick(firestoreData)
+            }
             directoryName="ryeager12@gmail.com"
             disabled={parsing}
           />

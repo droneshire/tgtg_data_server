@@ -21,6 +21,32 @@ interface FileDescriptions {
   fileString: string;
   fileRef: string;
 }
+
+function FirestoreNameToLabel(name: string): string {
+  let sections = name.split("_");
+  if (sections.length === 1) {
+    return name;
+  }
+
+  if (sections.length < 9) {
+    return name;
+  }
+
+  const date = sections[sections.length - 1].split(".")[0];
+  const searchName = sections[2];
+  const lattitude = sections[3];
+  const longitude = sections[4];
+  const lattitudeText =
+    lattitude.slice(0, lattitude.indexOf(".") + 3) +
+    "°" +
+    (lattitude.includes("-") ? "S" : "N");
+  const longitudeText =
+    longitude.slice(0, longitude.indexOf(".") + 3) +
+    "°" +
+    (longitude.includes("-") ? "W" : "E");
+  return `${searchName} [${lattitudeText}, ${longitudeText}]: ${date}`;
+}
+
 const FirestoreFileSelect: React.FC<FirestoreFileSelectProps> = (props) => {
   const directoryName = props.directoryName;
   const disabled = props.disabled;
@@ -49,11 +75,14 @@ const FirestoreFileSelect: React.FC<FirestoreFileSelectProps> = (props) => {
     setSelectedFile(name);
   };
 
-  const handleAlertClose = () => {
+  const closeAll = () => {
     setAlertOpen(false);
     setSelectedFile("");
-    setFiles([]);
     setFileData("");
+  };
+
+  const handleAlertClose = () => {
+    closeAll();
   };
 
   const readFireStoreCsv = useCallback(async (url: string) => {
@@ -69,17 +98,16 @@ const FirestoreFileSelect: React.FC<FirestoreFileSelectProps> = (props) => {
 
   useEffect(() => {
     if (fileData !== "") {
-      console.log("File data: ", fileData);
       handleOnClick(fileData);
+      closeAll();
     }
   }, [fileData, handleOnClick]);
 
-  const memoizedSelectedFile = useMemo(() => selectedFile, [selectedFile]);
   useEffect(() => {
-    if (memoizedSelectedFile !== "") {
-      const fileRef = ref(myStorage, memoizedSelectedFile);
+    if (selectedFile !== "") {
+      const fileRef = ref(myStorage, selectedFile);
 
-      console.log("Downloading file from firestore: ", memoizedSelectedFile);
+      console.log("Downloading file from firestore: ", selectedFile);
 
       getDownloadURL(fileRef)
         .then((url) => {
@@ -90,44 +118,60 @@ const FirestoreFileSelect: React.FC<FirestoreFileSelectProps> = (props) => {
           setAlertOpen(true);
         });
     }
-  }, [memoizedSelectedFile, readFireStoreCsv]);
+  }, [selectedFile, readFireStoreCsv]);
 
   useEffect(() => {
     const fetchFiles = async () => {
       try {
+        let fileList: FileDescriptions[] = [];
         const result = await listAll(storageRef);
         const directories = result.prefixes.map((prefixRef) => prefixRef.name);
         const fileNames = result.items.map((itemRef) => {
           const fileName = itemRef.name;
+          const labelName = FirestoreNameToLabel(fileName);
           if (fileName) {
             return {
-              fileString: fileName,
+              fileString: labelName,
               fileRef: `${directoryName}/${fileName}`,
             };
           }
           return null;
         });
-        setFiles(fileNames.filter(Boolean) as FileDescriptions[]);
+        fileList = fileNames.filter(Boolean) as FileDescriptions[];
 
         for (const directory of directories) {
           const directoryRef = ref(myStorage, `${directoryName}/${directory}/`);
           const directoryResult = await listAll(directoryRef);
-          const directoryString = directory.split("_").slice(0, -1).join(" ");
           const directoryFileNames = directoryResult.items.map((itemRef) => {
             const fileName = itemRef.name;
             if (fileName) {
+              const labelName = FirestoreNameToLabel(
+                `${directory}/${fileName}`
+              );
               return {
-                fileString: `${directoryString} ${fileName}`,
+                fileString: labelName,
                 fileRef: `${directoryName}/${directory}/${fileName}`,
               };
             }
             return null;
           });
-          setFiles((prevFiles) => [
-            ...prevFiles,
+          fileList = [
+            ...fileList,
             ...(directoryFileNames.filter(Boolean) as FileDescriptions[]),
-          ]);
+          ];
         }
+        // Filter out duplicate files
+        const uniqueFileList = Array.from(
+          new Set(fileList.map((file) => file.fileString))
+        ).map((fileString) =>
+          fileList.find((file) => file.fileString === fileString)
+        );
+
+        fileList = uniqueFileList.filter(Boolean) as FileDescriptions[];
+        fileList.sort((a, b) => {
+          return a.fileString.localeCompare(b.fileString);
+        });
+        setFiles(fileList);
       } catch (error) {
         console.error("Failed to list files:", error);
         setAlertOpen(true);
