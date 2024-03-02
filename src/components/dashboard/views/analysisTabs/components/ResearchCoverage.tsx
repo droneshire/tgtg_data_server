@@ -1,6 +1,12 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { DataMaps } from "./CsvDataUploader";
-import { Box, Button, CircularProgress, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Divider,
+  Typography,
+} from "@mui/material";
 import { CostResults, GridSearchResults } from "../logic/places_coverage";
 import ResearchCostTable from "./ResearchCostTable";
 import ResearchParameterInputs from "./ResearchParameterInputs";
@@ -20,7 +26,7 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({
   dataMaps,
   userConfigSnapshot,
 }) => {
-  const searches = userConfigSnapshot?.data()?.searches;
+  const searchContext = userConfigSnapshot?.data()?.searchContext;
   const [costPerSearch, setCostPerSearch] = React.useState(0.005);
   const [searchRadiusMeters, setSearchRadiusMeters] = React.useState(0);
   const [cityName, setCityName] = React.useState("");
@@ -37,6 +43,7 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({
     searchRadiusMiles: 0,
   });
   const [grid, setGrid] = React.useState<Grid>([]);
+  const [lastSearchTime, setLastSearchTime] = React.useState(new Date());
 
   const [displayResearchResults, setDisplayResearchResults] =
     React.useState(false);
@@ -44,7 +51,7 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({
   const [buttonDisabled, setButtonDisabled] = React.useState(false);
   const [openDialog, setOpenDialog] = React.useState(false);
 
-  if (!searches) {
+  if (!searchContext) {
     return <CircularProgress />;
   }
 
@@ -111,18 +118,20 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({
       radiusMiles: costResults.searchRadiusMiles,
       totalCost: costResults.totalCost,
       numberOfSquares: costResults.numberOfSquares,
-      gridWidthMeters: costResults.searchBlockArea,
+      gridWidthMeters: Math.sqrt(costResults.searchBlockArea),
       triggerSearch: true,
       autoUpload: true,
-      costResults: searchBudget,
-      maxCostPerCity: costPerSearch,
+      maxCostPerCity: searchBudget,
+      costPerSquare: costPerSearch,
     });
     setButtonDisabled(true);
-    setTimeout(() => {
-      setButtonDisabled(false);
-    }, 10000);
+    setLastSearchTime(new Date());
     setOpenDialog(false);
   };
+
+  useEffect(() => {
+    setButtonDisabled(searchContext.triggerSearch);
+  }, [searchContext]);
 
   return (
     <>
@@ -191,8 +200,9 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({
             disabled={buttonDisabled}
             onClick={handleTriggerSearchButtonClick}
             sx={{ marginBottom: "16px", width: "20%" }}
+            title={"Click to kick off the above search"}
           >
-            Kick off Search
+            {buttonDisabled ? "Search In Progress..." : "Kick off Search"}
           </Button>
           <ConfirmationDialog
             open={openDialog}
@@ -200,6 +210,21 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({
             onConfirm={handleDialogConfirm}
             message="Are you sure you want to proceed? This will make Google API calls and may incur costs."
           />
+          {buttonDisabled && (
+            <Typography variant="body1" gutterBottom>
+              {buttonDisabled && (
+                <Typography variant="body1" gutterBottom>
+                  Search in progress. Started at:{" "}
+                  {lastSearchTime.toLocaleString()}
+                </Typography>
+              )}
+            </Typography>
+          )}
+          <Divider />
+          <Typography variant="body2" gutterBottom>
+            Note: The above cost is an estimate and may vary based on the actual
+            number of blocks searched.
+          </Typography>
         </Box>
       )}
     </>
