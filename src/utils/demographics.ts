@@ -153,10 +153,8 @@ function getGridCoordinates(
 
   const grid: Grid = [];
 
-  // Subtract 1 from latSteps and lonSteps to avoid going over the radius
-  // since we are adding half the step size to the center
-  for (let i = 0; i < latSteps - 1; i++) {
-    for (let j = 0; j < lonSteps - 1; j++) {
+  for (let i = 0; i < latSteps; i++) {
+    for (let j = 0; j < lonSteps; j++) {
       const lat = centerLat - latAdjustment + latStepSize / 2 + i * latStepSize;
       const lon = centerLon - lonAdjustment + lonStepSize / 2 + j * lonStepSize;
 
