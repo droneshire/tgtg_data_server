@@ -12,6 +12,11 @@ const analysisTabsList = [
     component: DataSelectTab,
   },
   {
+    key: "census",
+    label: "Census",
+    component: CensusDataTab,
+  },
+  {
     key: "stores",
     label: "Stores",
     component: StoreAnalysisTab,
@@ -20,11 +25,6 @@ const analysisTabsList = [
     key: "research",
     label: "Research",
     component: ResearchTab,
-  },
-  {
-    key: "census",
-    label: "Census",
-    component: CensusDataTab,
   },
 ];
 

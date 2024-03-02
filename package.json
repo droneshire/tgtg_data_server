@@ -31,7 +31,6 @@
     "crypto-js": "^4.2.0",
     "dayjs": "^1.11.9",
     "firebase": "^10.3.0",
-    "isomorphic-unfetch": "^4.0.2",
     "node-geocoder": "^4.3.0",
     "papaparse": "^5.4.1",
     "plotly.js": "^2.27.1",
