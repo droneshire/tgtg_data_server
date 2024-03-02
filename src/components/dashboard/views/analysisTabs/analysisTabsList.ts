@@ -1,4 +1,5 @@
 import StoreAnalysisTab from "./StoreAnalysisTab";
+import CensusDataTab from "./CensusDataTab";
 import DataSelectTab from "./DataSelectTab";
 import ResearchTab from "./ResearchTab";
 
@@ -9,6 +10,11 @@ const analysisTabsList = [
     key: "data",
     label: "Select Data",
     component: DataSelectTab,
+  },
+  {
+    key: "census",
+    label: "Census",
+    component: CensusDataTab,
   },
   {
     key: "stores",

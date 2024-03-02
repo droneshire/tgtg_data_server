@@ -52,9 +52,7 @@ function extractCity(address: string): string | null {
   return city;
 }
 
-async function getCityCenterCoordinates(
-  cityName: string
-): Promise<Coordinates> {
+async function getAddressCoordinates(cityName: string): Promise<Coordinates> {
   try {
     const response = await fromAddress(cityName);
     const { lat, lng } = response.results[0].geometry.location;
@@ -189,11 +187,6 @@ function getGridCoordinates(
   return grid;
 }
 
-export {
-  extractCity,
-  getCityCenterCoordinates,
-  getViewport,
-  getGridCoordinates,
-};
+export { extractCity, getAddressCoordinates, getViewport, getGridCoordinates };
 
 export type { Coordinates, Grid, Viewport };
