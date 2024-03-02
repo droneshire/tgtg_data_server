@@ -8,6 +8,10 @@ import { TabPanel } from "components/utils/tabs";
 import { DataMaps } from "./analysisTabs/components/CsvDataUploader";
 import { CsvDataRow } from "workers/csvWorker";
 
+const visibleDefaultTabs = analysisTabsList
+  .filter(({ key }) => key === "data" || key === "census")
+  .map(({ key }) => key);
+
 const AnalysisView: FC = () => {
   const { userConfigSnapshot } = useOutletContext<DashboardViewContext>();
   const [selectedTabIndex, setSelectedTabIndex] = React.useState(
@@ -44,7 +48,7 @@ const AnalysisView: FC = () => {
                   label={label}
                   value={key}
                   key={key}
-                  disabled={!displayChart && key !== analysisTabsList[0].key}
+                  disabled={!displayChart && !visibleDefaultTabs.includes(key)}
                 />
               );
             })}

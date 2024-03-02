@@ -125,3 +125,5 @@ class USCensusAPI {
     return fields;
   }
 }
+
+export default USCensusAPI;

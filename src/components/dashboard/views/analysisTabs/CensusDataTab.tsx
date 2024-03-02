@@ -2,8 +2,13 @@ import { FC } from "react";
 import { Typography, Divider } from "@mui/material";
 
 import AnalysisTabsProps from "./analysisTabProps";
+import USCensusAPI from "utils/us_census";
 
 const CensusDataTab: FC<AnalysisTabsProps> = (props) => {
+  const census = new USCensusAPI(
+    process.env.REACT_APP_GOOGLE_MAPS_API_KEY || ""
+  );
+
   return (
     <>
       <Typography variant="h6" gutterBottom>
