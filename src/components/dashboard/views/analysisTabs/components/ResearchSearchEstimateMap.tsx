@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
 import { Data } from "plotly.js";
 import { DataMaps } from "./CsvDataUploader";
-import { Coordinates, getCityCenterCoordinates } from "utils/demographics";
+import { Coordinates, getAddressCoordinates } from "utils/demographics";
 import { HEADER_TITLES } from "utils/constants";
 import { Divider } from "@mui/material";
 import {
@@ -66,7 +66,7 @@ const ResearchSearchEstimateMap: React.FC<ResearchSearchEstimateMapProps> = (
     }
 
     const fetchCityCenterCoordinates = async () => {
-      const coordinates = await getCityCenterCoordinates(memoizedCityName);
+      const coordinates = await getAddressCoordinates(memoizedCityName);
       setCityCenterCoordinates(coordinates);
       console.log(
         `${memoizedCityName} center coordinates: ${coordinates.latitude}, ${coordinates.longitude}`
