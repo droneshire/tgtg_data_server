@@ -1,32 +1,67 @@
-import census from "citysdk";
-import { getAddressCoordinates } from "./demographics";
+import axios from "axios";
+
+interface GroupDetails {
+  description: string;
+  universe: string;
+}
 
 class USCensusAPI {
-  private apiKey: string;
-  private cache: Map<string, any>;
-  private defaultDataset: string = "ACS5";
+  private variable_cache: Map<string, any>;
+  private group_cache: Map<string, any>;
 
-  constructor(apiKey: string) {
-    this.apiKey = apiKey;
-    this.cache = new Map<string, any>();
+  constructor() {
+    this.variable_cache = new Map<string, string>();
+    this.group_cache = new Map<string, GroupDetails>();
+  }
+
+  private async getCensusGroups(
+    year: number,
+    sourcePath: string[]
+  ): Promise<Map<string, GroupDetails>> {
+    if (this.group_cache.size > 0) {
+      return this.group_cache;
+    }
+
+    const dataset = sourcePath.join("/").toLowerCase();
+    const groupsUrl = `https://api.census.gov/data/${year.toString()}/${dataset}/groups.json`;
+
+    try {
+      const response = await axios.get(groupsUrl);
+      const data = response.data;
+
+      for (const item of data["groups"]) {
+        const { name, description } = item;
+        const universe = item["universe "]; // there's an annoying trailing space in the key name!!
+        if (name && description && universe) {
+          this.group_cache.set(name, {
+            description: description.replaceAll("!!", " "),
+            universe: universe,
+          });
+        }
+      }
+    } catch (error) {
+      console.error(`Error retrieving census groups: ${error}`);
+    }
+
+    return this.group_cache;
   }
 
   private async getCensusFields(
     year: number,
-    dataset: string
+    sourcePath: string[]
   ): Promise<Map<string, any>> {
-    // Assuming this method is intended to cache field descriptions
-    if (this.cache.size > 0) {
-      return this.cache;
+    if (this.variable_cache.size > 0) {
+      return this.variable_cache;
     }
 
+    const dataset = sourcePath.join("/").toLowerCase();
     const definitionsUrl = `https://api.census.gov/data/${year.toString()}/${dataset}/variables.json`;
 
     try {
-      const response = await fetch(definitionsUrl);
-      const obj = await response.json();
+      const response = await axios.get(definitionsUrl);
+      const data = response.data;
 
-      for (const [key, elem] of Object.entries(obj["variables"])) {
+      for (const [key, elem] of Object.entries(data["variables"])) {
         if (key === "for" || key === "in") {
           continue;
         }
@@ -34,95 +69,30 @@ class USCensusAPI {
         const dict = elem as any;
 
         if ("concept" in dict && "label" in dict) {
-          this.cache.set(key, `${dict["concept"]}: ${dict["label"]}`);
+          this.variable_cache.set(key, `${dict["concept"]}: ${dict["label"]}`);
         }
       }
     } catch (error) {
       console.error(`Error retrieving census field definitions: ${error}`);
     }
 
-    return this.cache;
-  }
-
-  private async getCensusData(
-    geoLevel: string = "block group",
-    field: string,
-    address: string
-  ): Promise<any> {
-    try {
-      const coordinates = await getAddressCoordinates(address);
-
-      const request = {
-        vintage: this.defaultDataset,
-        geoHierarchy: {
-          [geoLevel]: {
-            lat: coordinates.latitude,
-            lng: coordinates.longitude,
-          },
-        },
-        sourcePath: ["acs", "acs5"],
-        values: [field],
-        statsKey: this.apiKey,
-      };
-
-      let query_result: Map<string, any> = new Map<string, any>();
-
-      census(request, (error: any, result: any) => {
-        if (error) {
-          console.error(error);
-          return;
-        }
-
-        console.log(`Found data for address: ${address}`);
-        query_result = result;
-      });
-
-      if (!query_result || query_result.size === 0) {
-        console.warn(`Could not find census data for address: ${address}`);
-        return null;
-      }
-
-      console.log(`Found data for address: ${address}`);
-      const data = query_result.get(field);
-      console.log(`Found ${field}: ${data}`);
-
-      return data;
-    } catch (error) {
-      console.warn(`Error retrieving census data for address: ${address}`);
-      console.error(error);
-      return null;
-    }
-  }
-
-  public async getDescriptionForField(
-    year: number,
-    dataSet: string,
-    field: string
-  ): Promise<string> {
-    const fields = await this.getCensusFields(year, dataSet);
-    if (!fields.has(field)) {
-      return "";
-    }
-
-    const concept = fields.get(field)?.concept || "";
-    const label = fields.get(field)?.label?.replace("!!", " ") || "";
-    return `${concept}: ${label}`;
-  }
-
-  public async getAllFieldCodes(
-    year: number,
-    dataSet: string
-  ): Promise<string[]> {
-    const fields = await this.getCensusFields(year, dataSet);
-    return Array.from(fields.keys());
+    return this.variable_cache;
   }
 
   public async getAllDescriptions(
     year: number,
-    dataSet: string
+    sourcePath: string[]
   ): Promise<Map<string, string>> {
-    const fields = await this.getCensusFields(year, dataSet);
+    const fields = await this.getCensusFields(year, sourcePath);
     return fields;
+  }
+
+  public async getAllGroups(
+    year: number,
+    sourcePath: string[]
+  ): Promise<Map<string, GroupDetails>> {
+    const groups = await this.getCensusGroups(year, sourcePath);
+    return groups;
   }
 }
 

@@ -4,10 +4,8 @@ export interface CsvDataRow {
   [key: string]: string;
 }
 
-
 const parseCsv = (file: File): Promise<CsvDataRow[]> => {
   return new Promise((resolve, reject) => {
-
     console.log("Parsing CSV file...");
     Papa.parse(file, {
       header: true,
@@ -25,7 +23,7 @@ const parseCsv = (file: File): Promise<CsvDataRow[]> => {
 
         const data = results.data as CsvDataRow[];
         resolve(data);
-      }
+      },
     });
   });
 };

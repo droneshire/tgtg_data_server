@@ -1,23 +1,22 @@
 import { FC } from "react";
-import { Typography, Divider } from "@mui/material";
+import { Typography, Divider, Box } from "@mui/material";
 
 import AnalysisTabsProps from "./analysisTabProps";
-import USCensusAPI from "utils/us_census";
+import CensusInformation from "./components/CensusInformation";
 
 const CensusDataTab: FC<AnalysisTabsProps> = (props) => {
-  const census = new USCensusAPI(
-    process.env.REACT_APP_GOOGLE_MAPS_API_KEY || ""
-  );
-
   return (
     <>
-      <Typography variant="h6" gutterBottom>
-        Census Data
-      </Typography>
-      <Typography variant="body1" gutterBottom>
-        This tab will contain the census data analysis.
-      </Typography>
-      <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
+      <Box sx={{ padding: 2, height: "100%" }}>
+        <Typography variant="h6" gutterBottom>
+          Census Data
+        </Typography>
+        <Typography variant="body1" gutterBottom>
+          This tab will contain the census data analysis.
+        </Typography>
+        <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
+        <CensusInformation />
+      </Box>
     </>
   );
 };
