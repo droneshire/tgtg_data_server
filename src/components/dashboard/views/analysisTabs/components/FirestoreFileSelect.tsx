@@ -28,12 +28,12 @@ function FirestoreNameToLabel(name: string): string {
     return name;
   }
 
-  if (sections.length < 9) {
+  if (sections.length < 10) {
     return name;
   }
 
   const date = sections
-    .slice(sections.length - 2, sections.length - 1)
+    .slice(sections.length - 2, sections.length)
     .join("_")
     .split(".")[0];
   const searchName = sections[2];
@@ -47,7 +47,7 @@ function FirestoreNameToLabel(name: string): string {
     longitude.slice(0, longitude.indexOf(".") + 3) +
     "°" +
     (longitude.includes("-") ? "W" : "E");
-  return `${searchName} [${lattitudeText}, ${longitudeText}]: ${date}`;
+  return `${searchName} [${lattitudeText}, ${longitudeText}]:  ${date}`;
 }
 
 const FirestoreFileSelect: React.FC<FirestoreFileSelectProps> = (props) => {
