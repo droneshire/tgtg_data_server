@@ -1,12 +1,12 @@
 import React, { useEffect } from "react";
 import { Modal, Box, Button } from "@mui/material";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { DataGrid, GridColDef, GridRowSelectionModel } from "@mui/x-data-grid";
 import { CensusVariablesDataType } from "utils/us_census";
 import { SetMealRounded } from "@mui/icons-material";
 
 interface CensusGroupModalProps {
   open: boolean;
-  onClose: () => void;
+  onClose: (selectedVariables: Record<string, string>) => void;
   groupCode: string;
   variablesData: CensusVariablesDataType;
 }
@@ -34,6 +34,9 @@ const CensusGroupModal: React.FC<CensusGroupModalProps> = ({
 }) => {
   const modalRef = React.useRef<HTMLElement>(null);
   const [rows, setRows] = React.useState<CensusVariablesCodeRow[]>([]);
+  const [selectedRows, setSelectedRows] = React.useState<GridRowSelectionModel>(
+    []
+  );
 
   useEffect(() => {
     if (open) {
@@ -64,9 +67,18 @@ const CensusGroupModal: React.FC<CensusGroupModalProps> = ({
   }, [variablesData]);
 
   const handleButtonClick = () => {
-    const selectedRows = rows.filter((row) => row.id);
-    console.log(selectedRows);
+    const newSelectedRows = rows.filter((row) => selectedRows.includes(row.id));
+    const selectedRowData = newSelectedRows.reduce(
+      (acc, row) => ({ ...acc, [row.censusCode]: row.codeDescription }),
+      {}
+    );
+    onClose(selectedRowData);
   };
+
+  const handleSelectionChange = (selectedRows: GridRowSelectionModel) => {
+    setSelectedRows(selectedRows);
+  };
+
   return (
     <Modal open={open} onClose={onClose}>
       <Box
@@ -97,8 +109,9 @@ const CensusGroupModal: React.FC<CensusGroupModalProps> = ({
               paginationModel: { page: 0, pageSize: 10 },
             },
           }}
-          pageSizeOptions={[5, 25, 50, 100]}
+          pageSizeOptions={[5, 10, 50, 100]}
           checkboxSelection
+          onRowSelectionModelChange={handleSelectionChange}
         />
         <Button
           variant="contained"
