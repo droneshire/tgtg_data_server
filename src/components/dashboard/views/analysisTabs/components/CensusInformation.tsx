@@ -14,7 +14,12 @@ import {
   DialogActions,
   TextField,
 } from "@mui/material";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import {
+  DataGrid,
+  GridCellParams,
+  GridColDef,
+  GridRowSelectionModel,
+} from "@mui/x-data-grid";
 import USCensusAPI from "utils/us_census";
 import { CensusDetails, ClientConfig } from "types/user";
 import { DocumentSnapshot, updateDoc } from "firebase/firestore";
@@ -43,7 +48,7 @@ enum SearchType {
 }
 
 const CensusInformation: React.FC<CensusInformationProps> = (props) => {
-  const MAX_SELECTIONS = 25;
+  const MAX_SELECTIONS = 200;
   const census = useMemo(() => new USCensusAPI(), []);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -64,17 +69,18 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
   const memoizedSearchYear = useMemo(() => searchYear, [searchYear]);
   const memoizedSearchType = useMemo(() => searchType, [searchType]);
 
-  const {
-    runAction: update,
-    running: updating,
-    error,
-    clearError,
-  } = useAsyncAction((details: CensusDetails) => {
-    const fieldsToUpdate = {
-      "searchContext.censusDetails": details,
-    };
-    updateDoc(props.userConfigSnapshot.ref, fieldsToUpdate);
-  });
+  const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>(
+    []
+  );
+
+  const { runAction: update, running: updating } = useAsyncAction(
+    (details: CensusDetails) => {
+      const fieldsToUpdate = {
+        "searchContext.censusDetails": details,
+      };
+      updateDoc(props.userConfigSnapshot.ref, fieldsToUpdate);
+    }
+  );
 
   useEffect(() => {
     const getCensusCodeData = async () => {
@@ -188,21 +194,23 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     setIsDialogOpen(false);
   };
 
-  const handleSelectionChange = (selection: any[]) => {
-    if (selection.length > MAX_SELECTIONS) {
-      setIsDialogOpen(true);
-      selection = selection.slice(0, MAX_SELECTIONS);
+  const handleRowClick = (params: any, event: React.MouseEvent) => {
+    if (params.field === "__check__") {
+      if (selectionModel.length >= MAX_SELECTIONS) {
+        setIsDialogOpen(true);
+        return;
+      }
+      const selectionExists = selectionModel.includes(params.id);
+      const newSelectionModel = selectionExists
+        ? selectionModel.filter((id) => id !== params.id) // Unselect
+        : [...selectionModel, params.id]; // Select
+
+      setSelectionModel(newSelectionModel);
+    } else {
     }
 
-    const selectedCodes = selection.reduce((map, index) => {
-      const censusCode = censusCodeRows[index]?.censusCode;
-      const codeDescription = censusCodeRows[index]?.codeDescription;
-      if (censusCode && codeDescription) {
-        map[censusCode] = codeDescription;
-      }
-      return map;
-    }, {} as Record<string, string>);
-    setSelectedCensusCodes(selectedCodes);
+    // Prevent row selection when clicking on other cells
+    event.stopPropagation();
   };
 
   const getSearchTypeFromText = (text: string): SearchType | undefined => {
@@ -331,7 +339,10 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
             }}
             pageSizeOptions={[10, 50, 100]}
             checkboxSelection
-            onRowSelectionModelChange={handleSelectionChange}
+            onRowSelectionModelChange={(newModel) =>
+              setSelectionModel(newModel)
+            }
+            onCellClick={handleRowClick}
           />
           <Button
             variant="contained"
@@ -352,7 +363,6 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
               <Button onClick={handleDialogClose}>OK</Button>
             </DialogActions>
           </Dialog>
-          ;
         </>
       )}
     </>
