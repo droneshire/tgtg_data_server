@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Modal, Box } from "@mui/material";
+import { Modal, Box, Button } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { CensusVariablesDataType } from "utils/us_census";
 import { SetMealRounded } from "@mui/icons-material";
@@ -63,6 +63,10 @@ const CensusGroupModal: React.FC<CensusGroupModalProps> = ({
     setRows(rows);
   }, [variablesData]);
 
+  const handleButtonClick = () => {
+    const selectedRows = rows.filter((row) => row.id);
+    console.log(selectedRows);
+  };
   return (
     <Modal open={open} onClose={onClose}>
       <Box
@@ -80,9 +84,31 @@ const CensusGroupModal: React.FC<CensusGroupModalProps> = ({
           display: "flex",
           flexDirection: "column",
           gap: 2,
+          overflowY: "auto",
+          maxHeight: "80vh",
         }}
       >
-        <DataGrid rows={rows} columns={columns} autoHeight />
+        <DataGrid
+          sx={{ height: "50%" }}
+          rows={rows}
+          columns={columns}
+          initialState={{
+            pagination: {
+              paginationModel: { page: 0, pageSize: 10 },
+            },
+          }}
+          pageSizeOptions={[5, 25, 50, 100]}
+          checkboxSelection
+        />
+        <Button
+          variant="contained"
+          color="primary"
+          size="small"
+          onClick={handleButtonClick}
+          sx={{ marginTop: "16px" }}
+        >
+          Select Items
+        </Button>
       </Box>
     </Modal>
   );
