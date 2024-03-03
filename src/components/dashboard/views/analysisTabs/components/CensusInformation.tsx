@@ -71,6 +71,12 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     []
   );
   const [rowIsClicked, setIsRowClicked] = useState<boolean>(false);
+  const [censusVariablesInfo, setCensusVariablesInfo] =
+    useState<CensusVariablesDataType>(new Map());
+  const [groupInfo, setCensusGroupInfo] = useState<CensusGroupDataType>(
+    new Map()
+  );
+  const [selectedGroupCode, setSelectedGroupCode] = useState<string>("");
 
   const { runAction: update, running: updating } = useAsyncAction(
     (details: CensusDetails) => {
@@ -82,50 +88,21 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
   );
 
   useEffect(() => {
-    const getCensusCodeData = async () => {
+    const loadCensusVariablesData = async () => {
       const isModalOpen = rowIsClicked;
-      if (memoizedSearchType !== SearchType.VARIABLE) {
+      const isSearchVariable = memoizedSearchType !== SearchType.VARIABLE;
+      if (!isModalOpen && !isSearchVariable) {
         return;
       }
+
       setIsLoading(true);
+
       try {
-        const censusVariablesInfo: CensusVariablesDataType =
-          await census.getAllVariables(memoizedSearchYear, ["acs", "acs5"]);
-        const columns: GridColDef[] = [
-          { field: "id", headerName: "ID", width: 70 },
-          { field: "censusCode", headerName: "Census Code", width: 150 },
-          {
-            field: "codeDescription",
-            headerName: "Census Code Description",
-            flex: 1,
-          },
-        ];
-        const rows: CensusVariablesCodeRow[] = Array.from(censusVariablesInfo)
-          .reduce(
-            (
-              acc: CensusVariablesCodeRow[],
-              [censusCode, codeDescription],
-              index
-            ) => {
-              if (censusCode === "ucgid") {
-                return acc;
-              }
-              const cleanedCodeDescription = codeDescription.replace(
-                /!!/g,
-                " "
-              );
-              acc.push({
-                id: index,
-                censusCode,
-                codeDescription: cleanedCodeDescription,
-              });
-              return acc;
-            },
-            []
-          )
-          .sort((a, b) => a.censusCode.localeCompare(b.censusCode));
-        setCensusCodeRows(rows);
-        setCensusCodeColumns(columns);
+        const data: CensusVariablesDataType = await census.getAllVariables(
+          memoizedSearchYear,
+          ["acs", "acs5"]
+        );
+        setCensusVariablesInfo(data);
       } catch (error) {
         console.error("Failed to fetch census codes", error);
       } finally {
@@ -134,8 +111,46 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
       }
     };
 
-    getCensusCodeData();
-  }, [memoizedSearchYear, memoizedSearchType]);
+    loadCensusVariablesData();
+  }, [memoizedSearchYear, memoizedSearchType, rowIsClicked]);
+
+  useEffect(() => {
+    if (memoizedSearchType !== SearchType.VARIABLE) {
+      return;
+    }
+    const columns: GridColDef[] = [
+      { field: "id", headerName: "ID", width: 70 },
+      { field: "censusCode", headerName: "Census Code", width: 150 },
+      {
+        field: "codeDescription",
+        headerName: "Census Code Description",
+        flex: 1,
+      },
+    ];
+    const rows: CensusVariablesCodeRow[] = Array.from(censusVariablesInfo)
+      .reduce(
+        (
+          acc: CensusVariablesCodeRow[],
+          [censusCode, codeDescription],
+          index
+        ) => {
+          if (censusCode === "ucgid") {
+            return acc;
+          }
+          const cleanedCodeDescription = codeDescription.replace(/!!/g, " ");
+          acc.push({
+            id: index,
+            censusCode,
+            codeDescription: cleanedCodeDescription,
+          });
+          return acc;
+        },
+        []
+      )
+      .sort((a, b) => a.censusCode.localeCompare(b.censusCode));
+    setCensusCodeRows(rows);
+    setCensusCodeColumns(columns);
+  }, [censusVariablesInfo, memoizedSearchType]);
 
   useEffect(() => {
     const getCensusCodeGroups = async () => {
@@ -148,39 +163,7 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
           memoizedSearchYear,
           ["acs", "acs5"]
         );
-        const columns: GridColDef[] = [
-          { field: "id", headerName: "ID", width: 70 },
-          { field: "censusCode", headerName: "Group Code", width: 150 },
-          {
-            field: "groupUniverse",
-            headerName: "Census Group Universe",
-            width: 200,
-          },
-          {
-            field: "codeDescription",
-            headerName: "Census Group Description",
-            flex: 1,
-          },
-        ];
-        const rows: CensusGroupRow[] = Array.from(groupInfo.entries())
-          .reduce(
-            (acc: CensusGroupRow[], [censusCode, groupDetails], index) => {
-              if (censusCode === "ucgid") {
-                return acc;
-              }
-              acc.push({
-                id: index,
-                censusCode,
-                codeDescription: groupDetails.description,
-                groupUniverse: groupDetails.universe,
-              });
-              return acc;
-            },
-            []
-          )
-          .sort((a, b) => a.censusCode.localeCompare(b.censusCode));
-        setCensusCodeRows(rows);
-        setCensusCodeColumns(columns);
+        setCensusGroupInfo(groupInfo);
       } catch (error) {
         console.error("Failed to fetch census codes", error);
       } finally {
@@ -191,6 +174,39 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
 
     getCensusCodeGroups();
   }, [memoizedSearchYear, memoizedSearchType]);
+
+  useEffect(() => {
+    const columns: GridColDef[] = [
+      { field: "id", headerName: "ID", width: 70 },
+      { field: "censusCode", headerName: "Group Code", width: 150 },
+      {
+        field: "groupUniverse",
+        headerName: "Census Group Universe",
+        width: 200,
+      },
+      {
+        field: "codeDescription",
+        headerName: "Census Group Description",
+        flex: 1,
+      },
+    ];
+    const rows: CensusGroupRow[] = Array.from(groupInfo.entries())
+      .reduce((acc: CensusGroupRow[], [censusCode, groupDetails], index) => {
+        if (censusCode === "ucgid") {
+          return acc;
+        }
+        acc.push({
+          id: index,
+          censusCode,
+          codeDescription: groupDetails.description,
+          groupUniverse: groupDetails.universe,
+        });
+        return acc;
+      }, [])
+      .sort((a, b) => a.censusCode.localeCompare(b.censusCode));
+    setCensusCodeRows(rows);
+    setCensusCodeColumns(columns);
+  }, [groupInfo]);
 
   const handleDialogClose = () => {
     setIsDialogOpen(false);
@@ -208,8 +224,9 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
         : [...selectionModel, params.id]; // Select
 
       setSelectionModel(newSelectionModel);
-    } else {
+    } else if (memoizedSearchType === SearchType.GROUP) {
       setIsRowClicked(true);
+      setSelectedGroupCode(params.row.censusCode);
     }
 
     // Prevent row selection when clicking on other cells
@@ -350,8 +367,8 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
           <CensusGroupModal
             open={rowIsClicked}
             onClose={() => setIsRowClicked(false)}
-            groupCode="B01001"
-            variablesData={selectedCensusCodes}
+            groupCode={selectedGroupCode}
+            variablesData={censusVariablesInfo}
           />
           <Button
             variant="contained"
