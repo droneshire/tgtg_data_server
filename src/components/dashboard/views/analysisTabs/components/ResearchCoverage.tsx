@@ -16,6 +16,7 @@ import { Grid } from "utils/demographics";
 import ConfirmationDialog from "components/utils/confirmationDialog";
 import { DocumentSnapshot, FieldPath, updateDoc } from "firebase/firestore";
 import { ClientConfig } from "types/user";
+import CensusCodesTable from "./CensusCodesTable";
 
 interface ResearchCoverageProps {
   dataMaps: DataMaps;
@@ -112,18 +113,20 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({
 
   const handleDialogConfirm = () => {
     console.log("Triggering search");
-    updateDoc(userConfigSnapshot.ref, new FieldPath("searchContext"), {
-      city: cityName,
-      cityCenter: cityCenter,
-      radiusMiles: costResults.searchRadiusMiles,
-      totalCost: costResults.totalCost,
-      numberOfSquares: costResults.numberOfSquares,
-      gridWidthMeters: Math.sqrt(costResults.searchBlockArea),
-      triggerSearch: true,
-      autoUpload: true,
-      maxCostPerCity: searchBudget,
-      costPerSquare: costPerSearch,
-    });
+    const fieldsToUpdate = {
+      "searchContext.city": cityName,
+      "searchContext.cityCenter": cityCenter,
+      "searchContext.radiusMiles": costResults.searchRadiusMiles,
+      "searchContext.totalCost": costResults.totalCost,
+      "searchContext.numberOfSquares": costResults.numberOfSquares,
+      "searchContext.gridWidthMeters": Math.sqrt(costResults.searchBlockArea),
+      "searchContext.triggerSearch": true,
+      "searchContext.autoUpload": true,
+      "searchContext.maxCostPerCity": searchBudget,
+      "searchContext.costPerSquare": costPerSearch,
+    };
+    updateDoc(userConfigSnapshot.ref, fieldsToUpdate);
+
     setButtonDisabled(true);
     setLastSearchTime(new Date());
     setOpenDialog(false);
@@ -194,6 +197,10 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({
             Estimated Search Cost
           </Typography>
           <ResearchCostTable costResults={costResults} />
+          <Typography variant="h6" gutterBottom>
+            Census Codes to be Used
+          </Typography>
+          <CensusCodesTable censusCodeDetails={searchContext.censusDetails} />
           <Button
             variant="contained"
             component="label"

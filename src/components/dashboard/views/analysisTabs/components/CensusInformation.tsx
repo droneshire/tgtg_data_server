@@ -2,17 +2,24 @@ import React, { useEffect, useMemo, useState } from "react";
 
 import {
   Box,
+  Button,
   CircularProgress,
   MenuItem,
   Select,
   SelectChangeEvent,
   Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import USCensusAPI from "utils/us_census";
+import { ClientConfig } from "types/user";
+import { DocumentSnapshot, updateDoc } from "firebase/firestore";
 
 interface CensusInformationProps {
-  // Define the props for the component here
+  userConfigSnapshot: DocumentSnapshot<ClientConfig>;
 }
 
 interface CensusCodeRow {
@@ -23,8 +30,8 @@ interface CensusCodeRow {
 
 interface CensusGroupRow {
   id: number;
-  groupCode: string;
-  groupDescription: string;
+  censusCode: string;
+  codeDescription: string;
   groupUniverse: string;
 }
 
@@ -34,14 +41,18 @@ enum SearchType {
 }
 
 const CensusInformation: React.FC<CensusInformationProps> = (props) => {
+  const MAX_SELECTIONS = 25;
   const census = useMemo(() => new USCensusAPI(), []);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchYear, setSearchYear] = useState<number>(2022);
-
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchType, setSearchType] = useState<SearchType>(SearchType.GROUP);
   const [censusCodeRows, setCensusCodeRows] = useState<any[]>([]);
   const [censusCodeColumns, setCensusCodeColumns] = useState<GridColDef[]>([]);
+  const [selectedCensusCodes, setSelectedCensusCodes] = useState<
+    Map<string, string>
+  >(new Map());
 
   const memoizedSearchYear = useMemo(() => searchYear, [searchYear]);
   const memoizedSearchType = useMemo(() => searchType, [searchType]);
@@ -111,32 +122,35 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
         ]);
         const columns: GridColDef[] = [
           { field: "id", headerName: "ID", width: 70 },
-          { field: "groupCode", headerName: "Group Code", width: 150 },
-          {
-            field: "groupDescription",
-            headerName: "Census Group Description",
-            width: 400,
-          },
+          { field: "censusCode", headerName: "Group Code", width: 150 },
           {
             field: "groupUniverse",
             headerName: "Census Group Universe",
             width: 200,
           },
+          {
+            field: "codeDescription",
+            headerName: "Census Group Description",
+            flex: 1,
+          },
         ];
         const rows: CensusGroupRow[] = Array.from(groupInfo.entries())
-          .reduce((acc: CensusGroupRow[], [groupCode, groupDetails], index) => {
-            if (groupCode === "ucgid") {
+          .reduce(
+            (acc: CensusGroupRow[], [censusCode, groupDetails], index) => {
+              if (censusCode === "ucgid") {
+                return acc;
+              }
+              acc.push({
+                id: index,
+                censusCode,
+                codeDescription: groupDetails.description,
+                groupUniverse: groupDetails.universe,
+              });
               return acc;
-            }
-            acc.push({
-              id: index,
-              groupCode,
-              groupDescription: groupDetails.description,
-              groupUniverse: groupDetails.universe,
-            });
-            return acc;
-          }, [])
-          .sort((a, b) => a.groupCode.localeCompare(b.groupCode));
+            },
+            []
+          )
+          .sort((a, b) => a.censusCode.localeCompare(b.censusCode));
         setCensusCodeRows(rows);
         setCensusCodeColumns(columns);
       } catch (error) {
@@ -149,10 +163,25 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     getCensusCodeGroups();
   }, [memoizedSearchYear, memoizedSearchType]);
 
+  const handleDialogClose = () => {
+    setIsDialogOpen(false);
+  };
+
   const handleSelectionChange = (selection: any[]) => {
-    const selectedCodes = selection.map(
-      (index) => censusCodeRows[index]?.censusCode
-    );
+    if (selection.length > MAX_SELECTIONS) {
+      setIsDialogOpen(true);
+      selection = selection.slice(0, MAX_SELECTIONS);
+    }
+
+    const selectedCodes = selection.reduce((map, index) => {
+      const censusCode = censusCodeRows[index]?.censusCode;
+      const codeDescription = censusCodeRows[index]?.codeDescription;
+      if (censusCode && codeDescription) {
+        map[censusCode] = codeDescription;
+      }
+      return map;
+    }, {} as Record<string, string>);
+    setSelectedCensusCodes(selectedCodes);
   };
 
   const getSearchTypeFromText = (text: string): SearchType | undefined => {
@@ -169,6 +198,17 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
       console.error("Invalid search type");
       setSearchType(SearchType.GROUP);
     }
+  };
+
+  const handleButtonClick = () => {
+    const fieldsToUpdate = {
+      "searchContext.censusDetails": {
+        year: searchYear,
+        sourcePath: ["acs", "acs5"],
+        fields: selectedCensusCodes,
+      },
+    };
+    updateDoc(props.userConfigSnapshot.ref, fieldsToUpdate);
   };
 
   const validCensusYears = [
@@ -227,19 +267,40 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
           </div>
         </Box>
       ) : (
-        <DataGrid
-          sx={{ height: "100%" }}
-          rows={censusCodeRows}
-          columns={censusCodeColumns}
-          initialState={{
-            pagination: {
-              paginationModel: { page: 0, pageSize: 10 },
-            },
-          }}
-          pageSizeOptions={[10, 50, 100]}
-          checkboxSelection
-          onRowSelectionModelChange={handleSelectionChange}
-        />
+        <>
+          <DataGrid
+            sx={{ height: "100%" }}
+            rows={censusCodeRows}
+            columns={censusCodeColumns}
+            initialState={{
+              pagination: {
+                paginationModel: { page: 0, pageSize: 10 },
+              },
+            }}
+            pageSizeOptions={[10, 50, 100]}
+            checkboxSelection
+            onRowSelectionModelChange={handleSelectionChange}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            onClick={handleButtonClick}
+            sx={{ marginTop: "16px" }}
+          >
+            Add to Analysis
+          </Button>
+          <Dialog open={isDialogOpen} onClose={handleDialogClose}>
+            <DialogTitle>Warning</DialogTitle>
+            <DialogContent>
+              <p>The maximum number of selections is {MAX_SELECTIONS}.</p>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleDialogClose}>OK</Button>
+            </DialogActions>
+          </Dialog>
+          ;
+        </>
       )}
     </>
   );

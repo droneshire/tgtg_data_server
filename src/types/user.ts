@@ -53,6 +53,14 @@ export interface Preferences {
   searchTimeZone: SearchTimeZone;
 }
 
+export interface CensusDetails {
+  year: number;
+  sourcePath: string;
+  fields: {
+    [code: string]: string;
+  };
+}
+
 export interface SearchContext {
   city: string;
   cityCenter: Coordinates;
@@ -64,6 +72,7 @@ export interface SearchContext {
   autoUpload: boolean;
   maxCostPerCity: number;
   costPerSquare: number;
+  censusDetails: CensusDetails;
 }
 
 export interface ClientConfig {
@@ -103,5 +112,10 @@ export const DEFAULT_USER_CONFIG: ClientConfig = {
     autoUpload: false,
     maxCostPerCity: 0,
     costPerSquare: 0,
+    censusDetails: {
+      year: 0,
+      sourcePath: "",
+      fields: {},
+    },
   },
 };
