@@ -13,7 +13,7 @@ const analysisTabsList = [
   },
   {
     key: "census",
-    label: "Census",
+    label: "Demographics",
     component: CensusDataTab,
   },
   {
