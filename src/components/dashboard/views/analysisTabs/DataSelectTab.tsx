@@ -31,7 +31,7 @@ const DataSelectTab: FC<AnalysisTabsProps> = (props) => {
       <FormGroup>
         <CsvDataUploader onUpload={onUpload}></CsvDataUploader>
       </FormGroup>
-      <Divider sx={{ marginTop: 2, marginBottom: 4 }} />
+      <Divider sx={{ marginTop: 5, marginBottom: 4 }} />
     </>
   );
 };
