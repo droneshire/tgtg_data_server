@@ -5,9 +5,12 @@ interface GroupDetails {
   universe: string;
 }
 
+export type CensusVariablesDataType = Map<string, string>;
+export type CensusGroupDataType = Map<string, GroupDetails>;
+
 class USCensusAPI {
-  private variable_cache: Map<string, any>;
-  private group_cache: Map<string, any>;
+  private variable_cache: CensusVariablesDataType;
+  private group_cache: CensusGroupDataType;
 
   constructor() {
     this.variable_cache = new Map<string, string>();
@@ -17,7 +20,7 @@ class USCensusAPI {
   private async getCensusGroups(
     year: number,
     sourcePath: string[]
-  ): Promise<Map<string, GroupDetails>> {
+  ): Promise<CensusGroupDataType> {
     if (this.group_cache.size > 0) {
       return this.group_cache;
     }
@@ -79,10 +82,10 @@ class USCensusAPI {
     return this.variable_cache;
   }
 
-  public async getAllDescriptions(
+  public async getAllVariables(
     year: number,
     sourcePath: string[]
-  ): Promise<Map<string, string>> {
+  ): Promise<CensusVariablesDataType> {
     const fields = await this.getCensusFields(year, sourcePath);
     return fields;
   }
@@ -90,7 +93,7 @@ class USCensusAPI {
   public async getAllGroups(
     year: number,
     sourcePath: string[]
-  ): Promise<Map<string, GroupDetails>> {
+  ): Promise<CensusGroupDataType> {
     const groups = await this.getCensusGroups(year, sourcePath);
     return groups;
   }

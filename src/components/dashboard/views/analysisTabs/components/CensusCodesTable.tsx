@@ -8,7 +8,7 @@ import { CensusDetails } from "types/user";
 interface CensusCodesTableProps {
   censusCodeDetails: CensusDetails;
 }
-interface CensusCodeRow {
+interface CensusVariablesCodeRow {
   id: number;
   censusCode: string;
   codeType: string;
@@ -34,24 +34,27 @@ const CensusCodesTable: React.FC<CensusCodesTableProps> = (props) => {
     },
   ];
 
-  const rows: CensusCodeRow[] = Array.from(Object.entries(codesInfo))
-    .reduce((acc: CensusCodeRow[], [censusCode, codeDescription], index) => {
-      if (censusCode === "ucgid") {
+  const rows: CensusVariablesCodeRow[] = Array.from(Object.entries(codesInfo))
+    .reduce(
+      (acc: CensusVariablesCodeRow[], [censusCode, codeDescription], index) => {
+        if (censusCode === "ucgid") {
+          return acc;
+        }
+        const cleanedCodeDescription = codeDescription.replace(/!!/g, " ");
+        let codeType = "Group";
+        if (censusCode.includes("_")) {
+          codeType = "Variable";
+        }
+        acc.push({
+          id: index,
+          censusCode,
+          codeType: codeType,
+          codeDescription: cleanedCodeDescription,
+        });
         return acc;
-      }
-      const cleanedCodeDescription = codeDescription.replace(/!!/g, " ");
-      let codeType = "Group";
-      if (censusCode.includes("_")) {
-        codeType = "Variable";
-      }
-      acc.push({
-        id: index,
-        censusCode,
-        codeType: codeType,
-        codeDescription: cleanedCodeDescription,
-      });
-      return acc;
-    }, [])
+      },
+      []
+    )
     .sort((a, b) => a.censusCode.localeCompare(b.censusCode));
 
   return (

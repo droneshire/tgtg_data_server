@@ -20,19 +20,17 @@ import {
   GridColDef,
   GridRowSelectionModel,
 } from "@mui/x-data-grid";
-import USCensusAPI from "utils/us_census";
+import USCensusAPI, {
+  CensusGroupDataType,
+  CensusVariablesDataType,
+} from "utils/us_census";
 import { CensusDetails, ClientConfig } from "types/user";
 import { DocumentSnapshot, updateDoc } from "firebase/firestore";
 import { useAsyncAction } from "hooks/async";
+import CensusGroupModal, { CensusVariablesCodeRow } from "./CensusGroupModal";
 
 interface CensusInformationProps {
   userConfigSnapshot: DocumentSnapshot<ClientConfig>;
-}
-
-interface CensusCodeRow {
-  id: number;
-  censusCode: string;
-  codeDescription: string;
 }
 
 interface CensusGroupRow {
@@ -72,6 +70,7 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
   const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>(
     []
   );
+  const [rowIsClicked, setIsRowClicked] = useState<boolean>(false);
 
   const { runAction: update, running: updating } = useAsyncAction(
     (details: CensusDetails) => {
@@ -84,15 +83,14 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
 
   useEffect(() => {
     const getCensusCodeData = async () => {
+      const isModalOpen = rowIsClicked;
       if (memoizedSearchType !== SearchType.VARIABLE) {
         return;
       }
       setIsLoading(true);
       try {
-        const codesInfo = await census.getAllDescriptions(memoizedSearchYear, [
-          "acs",
-          "acs5",
-        ]);
+        const censusVariablesInfo: CensusVariablesDataType =
+          await census.getAllVariables(memoizedSearchYear, ["acs", "acs5"]);
         const columns: GridColDef[] = [
           { field: "id", headerName: "ID", width: 70 },
           { field: "censusCode", headerName: "Census Code", width: 150 },
@@ -102,9 +100,13 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
             flex: 1,
           },
         ];
-        const rows: CensusCodeRow[] = Array.from(codesInfo)
+        const rows: CensusVariablesCodeRow[] = Array.from(censusVariablesInfo)
           .reduce(
-            (acc: CensusCodeRow[], [censusCode, codeDescription], index) => {
+            (
+              acc: CensusVariablesCodeRow[],
+              [censusCode, codeDescription],
+              index
+            ) => {
               if (censusCode === "ucgid") {
                 return acc;
               }
@@ -142,10 +144,10 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
       }
       setIsLoading(true);
       try {
-        const groupInfo = await census.getAllGroups(memoizedSearchYear, [
-          "acs",
-          "acs5",
-        ]);
+        const groupInfo: CensusGroupDataType = await census.getAllGroups(
+          memoizedSearchYear,
+          ["acs", "acs5"]
+        );
         const columns: GridColDef[] = [
           { field: "id", headerName: "ID", width: 70 },
           { field: "censusCode", headerName: "Group Code", width: 150 },
@@ -207,6 +209,7 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
 
       setSelectionModel(newSelectionModel);
     } else {
+      setIsRowClicked(true);
     }
 
     // Prevent row selection when clicking on other cells
@@ -343,6 +346,12 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
               setSelectionModel(newModel)
             }
             onCellClick={handleRowClick}
+          />
+          <CensusGroupModal
+            open={rowIsClicked}
+            onClose={() => setIsRowClicked(false)}
+            groupCode="B01001"
+            variablesData={selectedCensusCodes}
           />
           <Button
             variant="contained"
