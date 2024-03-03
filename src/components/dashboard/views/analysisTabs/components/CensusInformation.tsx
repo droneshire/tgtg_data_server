@@ -16,8 +16,9 @@ import {
 } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import USCensusAPI from "utils/us_census";
-import { ClientConfig } from "types/user";
+import { CensusDetails, ClientConfig } from "types/user";
 import { DocumentSnapshot, updateDoc } from "firebase/firestore";
+import { useAsyncAction } from "hooks/async";
 
 interface CensusInformationProps {
   userConfigSnapshot: DocumentSnapshot<ClientConfig>;
@@ -55,12 +56,25 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
   );
   const [censusCodeColumns, setCensusCodeColumns] = useState<GridColDef[]>([]);
   const [selectedCensusCodes, setSelectedCensusCodes] = useState<
-    Map<string, string>
-  >(new Map());
+    Record<string, string>
+  >({});
   const [searchText, setSearchText] = useState<string>("");
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
 
   const memoizedSearchYear = useMemo(() => searchYear, [searchYear]);
   const memoizedSearchType = useMemo(() => searchType, [searchType]);
+
+  const {
+    runAction: update,
+    running: updating,
+    error,
+    clearError,
+  } = useAsyncAction((details: CensusDetails) => {
+    const fieldsToUpdate = {
+      "searchContext.censusDetails": details,
+    };
+    updateDoc(props.userConfigSnapshot.ref, fieldsToUpdate);
+  });
 
   useEffect(() => {
     const getCensusCodeData = async () => {
@@ -208,14 +222,15 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
   };
 
   const handleButtonClick = () => {
-    const fieldsToUpdate = {
-      "searchContext.censusDetails": {
-        year: searchYear,
-        sourcePath: ["acs", "acs5"],
-        fields: selectedCensusCodes,
-      },
-    };
-    updateDoc(props.userConfigSnapshot.ref, fieldsToUpdate);
+    update({
+      year: searchYear,
+      sourcePath: ["acs", "acs5"].join("/"),
+      fields: selectedCensusCodes,
+    });
+    setIsUpdating(true);
+    setTimeout(() => {
+      setIsUpdating(false);
+    }, 10000);
   };
 
   useEffect(() => {
@@ -322,6 +337,7 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
             variant="contained"
             color="primary"
             size="small"
+            disabled={updating || isUpdating}
             onClick={handleButtonClick}
             sx={{ marginTop: "16px" }}
           >
