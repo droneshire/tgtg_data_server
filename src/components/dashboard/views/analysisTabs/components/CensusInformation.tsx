@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  TextField,
 } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import USCensusAPI from "utils/us_census";
@@ -49,10 +50,14 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchType, setSearchType] = useState<SearchType>(SearchType.GROUP);
   const [censusCodeRows, setCensusCodeRows] = useState<any[]>([]);
+  const [filteredCensusCodeRows, setFilteredCensusCodeRows] = useState<any[]>(
+    []
+  );
   const [censusCodeColumns, setCensusCodeColumns] = useState<GridColDef[]>([]);
   const [selectedCensusCodes, setSelectedCensusCodes] = useState<
     Map<string, string>
   >(new Map());
+  const [searchText, setSearchText] = useState<string>("");
 
   const memoizedSearchYear = useMemo(() => searchYear, [searchYear]);
   const memoizedSearchType = useMemo(() => searchType, [searchType]);
@@ -74,7 +79,7 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
           {
             field: "codeDescription",
             headerName: "Census Code Description",
-            width: 400,
+            flex: 1,
           },
         ];
         const rows: CensusCodeRow[] = Array.from(codesInfo)
@@ -103,6 +108,7 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
         console.error("Failed to fetch census codes", error);
       } finally {
         setIsLoading(false);
+        setSearchText("");
       }
     };
 
@@ -157,6 +163,7 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
         console.error("Failed to fetch census codes", error);
       } finally {
         setIsLoading(false);
+        setSearchText("");
       }
     };
 
@@ -209,6 +216,27 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
       },
     };
     updateDoc(props.userConfigSnapshot.ref, fieldsToUpdate);
+  };
+
+  useEffect(() => {
+    setFilteredCensusCodeRows(censusCodeRows);
+  }, [censusCodeRows]);
+
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const searchValue = event.target.value;
+    setSearchText(searchValue);
+
+    if (!searchValue) {
+      setFilteredCensusCodeRows(censusCodeRows);
+      return;
+    }
+
+    const filteredRows = censusCodeRows.filter((row) => {
+      return row.codeDescription
+        .toLowerCase()
+        .includes(searchValue.toLowerCase());
+    });
+    setFilteredCensusCodeRows(filteredRows);
   };
 
   const validCensusYears = [
@@ -268,9 +296,18 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
         </Box>
       ) : (
         <>
+          <TextField
+            id="search"
+            label="Search"
+            variant="outlined"
+            value={searchText}
+            onChange={handleSearch}
+            fullWidth
+            sx={{ mb: 2 }}
+          />
           <DataGrid
             sx={{ height: "100%" }}
-            rows={censusCodeRows}
+            rows={filteredCensusCodeRows}
             columns={censusCodeColumns}
             initialState={{
               pagination: {
