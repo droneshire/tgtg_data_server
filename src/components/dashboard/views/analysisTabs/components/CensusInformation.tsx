@@ -90,10 +90,10 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
   const [searchText, setSearchText] = useState<string>("");
 
   const [censusCodeRows, setCensusCodeRows] = useState<any[]>([]);
-  const [censusCodeColumns, setCensusCodeColumns] = useState<GridColDef[]>([]);
   const [filteredCensusCodeRows, setFilteredCensusCodeRows] = useState<any[]>(
     []
   );
+  const [censusCodeColumns, setCensusCodeColumns] = useState<GridColDef[]>([]);
 
   const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>(
     []
@@ -115,6 +115,8 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
   const memoizedSearchYear = useMemo(() => searchYear, [searchYear]);
   const memoizedSearchType = useMemo(() => searchType, [searchType]);
 
+  // Update the user's configuration with the selected census codes
+  // this provides a callback function that can be called to update the user's configuration
   const { runAction: update, running: updating } = useAsyncAction(
     (details: CensusDetails) => {
       const fieldsToUpdate = {
@@ -124,6 +126,7 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     }
   );
 
+  // Load/cache the data from the US Census API
   useEffect(() => {
     const loadCensusVariablesData = async () => {
       const isModalOpen = isRowClicked;
@@ -151,6 +154,31 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     loadCensusVariablesData();
   }, [memoizedSearchYear, memoizedSearchType, isRowClicked]);
 
+  // Load/cache the data from the US Census API
+  useEffect(() => {
+    const getCensusCodeGroups = async () => {
+      if (memoizedSearchType !== SearchType.GROUP) {
+        return;
+      }
+      setIsLoading(true);
+      try {
+        const groupInfo: CensusGroupDataType = await census.getAllGroups(
+          memoizedSearchYear,
+          ["acs", "acs5"]
+        );
+        setCensusGroupInfo(groupInfo);
+      } catch (error) {
+        console.error("Failed to fetch census codes", error);
+      } finally {
+        setIsLoading(false);
+        setSearchText("");
+      }
+    };
+
+    getCensusCodeGroups();
+  }, [memoizedSearchYear, memoizedSearchType]);
+
+  // Change the table data if the search type changes: Variable
   useEffect(() => {
     if (memoizedSearchType !== SearchType.VARIABLE) {
       return;
@@ -181,30 +209,12 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     setCensusCodeColumns(variablesColumns);
   }, [censusVariablesInfo, memoizedSearchType]);
 
+  // Change the table data if the search type changes: Group
   useEffect(() => {
-    const getCensusCodeGroups = async () => {
-      if (memoizedSearchType !== SearchType.GROUP) {
-        return;
-      }
-      setIsLoading(true);
-      try {
-        const groupInfo: CensusGroupDataType = await census.getAllGroups(
-          memoizedSearchYear,
-          ["acs", "acs5"]
-        );
-        setCensusGroupInfo(groupInfo);
-      } catch (error) {
-        console.error("Failed to fetch census codes", error);
-      } finally {
-        setIsLoading(false);
-        setSearchText("");
-      }
-    };
+    if (memoizedSearchType !== SearchType.GROUP) {
+      return;
+    }
 
-    getCensusCodeGroups();
-  }, [memoizedSearchYear, memoizedSearchType]);
-
-  useEffect(() => {
     const rows: CensusGroupRow[] = Array.from(censusGroupInfo.entries())
       .reduce((acc: CensusGroupRow[], [censusCode, groupDetails], index) => {
         if (censusCode === "ucgid") {
@@ -221,19 +231,22 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
       .sort((a, b) => a.censusCode.localeCompare(b.censusCode));
     setCensusCodeRows(rows);
     setCensusCodeColumns(groupColumns);
-  }, [censusGroupInfo]);
+  }, [censusGroupInfo, memoizedSearchType]);
 
   useEffect(() => {
     setFilteredCensusCodeRows(censusCodeRows);
   }, [censusCodeRows]);
 
+  // This is a memoized function that returns the census variables for a given group
+  // which is simply based on the prefix of the census code matching the group code
   const censusVariablesByGroup = useMemo(() => {
     const getCensusVariablesByGroup = (groupCode: string) => {
       const filteredInfo: CensusVariablesDataType = new Map();
       for (const [censusCode, codeDescription] of Array.from(
         censusVariablesInfo
       )) {
-        if (censusCode.startsWith(groupCode) && censusCode !== "ucgid") {
+        const prefix = censusCode.split("_")[0];
+        if (prefix === groupCode && censusCode !== "ucgid") {
           filteredInfo.set(censusCode, codeDescription);
         }
       }
@@ -247,6 +260,9 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     setIsDialogOpen(false);
   };
 
+  // Handle the selection/deletion of items from the DataGrid
+  // This handles complex selections and deselections, such as when
+  // a group is selected and all of its variables are added to the selection
   const handleRowSelectionModelChange = (
     newSelectionModel: GridRowSelectionModel
   ) => {
@@ -305,6 +321,7 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     setSelectedCensusCodes({ ...newSelectedCensusCodes });
   };
 
+  // Handle when the DataGrid row gets clicked or the checkbox gets clicked
   const handleCellClick = (
     params: GridCellParams,
     event: MuiEvent,
@@ -314,16 +331,23 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     const isCheckboxClick = params.field === "__check__";
     lastClickWasOnCheckbox.current = isCheckboxClick;
 
-    if (!isCheckboxClick) {
-      setIsRowClicked(true);
+    if (memoizedSearchType === SearchType.GROUP) {
+      setSelectedGroupCode(params.row.censusCode);
+      if (!isCheckboxClick) {
+        setIsRowClicked(true);
+      }
     }
   };
 
+  // Handle deletions from the chips component
   const updateSelectedCensusCodesAfterChipChanges = (
     newSelectedCensusCodes: CensusFields
   ) => {
     setSelectedCensusCodes(newSelectedCensusCodes);
-    console.log("Selected census codes updated", newSelectedCensusCodes);
+    const previousNumCodes = Object.keys(selectedCensusCodes).length;
+    const newNumCodes = Object.keys(newSelectedCensusCodes).length;
+    console.log("Previousy selected codes:", previousNumCodes);
+    console.log("Newly selected codes:", newNumCodes);
     setSelectionModel(
       censusCodeRows
         .filter((row) =>
@@ -348,6 +372,7 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     setSearchYear(parseInt(event.target.value, 10));
   };
 
+  // Handle the "Add to Analysis" button click, this submits it to the database
   const handleButtonClick = () => {
     update({
       year: searchYear,
@@ -360,6 +385,7 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     }, 10000);
   };
 
+  // Handle the search bar input
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const searchValue = event.target.value;
     setSearchText(searchValue);
@@ -377,6 +403,7 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     setFilteredCensusCodeRows(filteredRows);
   };
 
+  // Handle the modal closing
   const handleModalClosed = (selectedVariables: CensusFields) => {
     setIsRowClicked(false);
     if (modalSubmitted) {
@@ -384,6 +411,7 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     }
   };
 
+  // Handle the modal submit
   const handleModalSubmit = (selectedVariables: CensusFields) => {
     setSelectedCensusCodes({ ...selectedCensusCodes, ...selectedVariables });
     setModalSubmitted(true);
