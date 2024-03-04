@@ -98,6 +98,10 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
   const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>(
     []
   );
+  const [groupSelectionModel, setGroupSelectionModel] =
+    useState<GridRowSelectionModel>([]);
+  const [variableSelectionModel, setVariableSelectionModel] =
+    useState<GridRowSelectionModel>([]);
   const [selectedGroupCode, setSelectedGroupCode] = useState<string>("");
 
   // Hold the cached data for the census variables and groups
@@ -366,6 +370,14 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     const searchType = getSearchTypeFromText(event.target.value);
     if (searchType) {
       setSearchType(searchType);
+
+      if (searchType === SearchType.VARIABLE) {
+        setGroupSelectionModel(selectionModel); // cache the group selections
+        setSelectionModel(variableSelectionModel); // restore the variable selections
+      } else if (searchType === SearchType.GROUP) {
+        setVariableSelectionModel(selectionModel); // cache the variable selections
+        setSelectionModel(groupSelectionModel); // restore the group selections
+      }
       console.log("Search type changed to", searchType);
     } else {
       console.error("Invalid search type");
