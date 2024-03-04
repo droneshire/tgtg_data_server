@@ -53,6 +53,8 @@ export interface Preferences {
   searchTimeZone: SearchTimeZone;
 }
 
+export type CensusFields = Record<string, string>;
+
 export interface CensusDetails {
   year: number;
   sourcePath: string;

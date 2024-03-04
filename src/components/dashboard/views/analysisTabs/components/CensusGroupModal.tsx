@@ -3,12 +3,13 @@ import { Modal, Box, Button } from "@mui/material";
 import { DataGrid, GridColDef, GridRowSelectionModel } from "@mui/x-data-grid";
 import { CensusVariablesDataType } from "utils/us_census";
 import { SetMealRounded } from "@mui/icons-material";
+import { CensusFields } from "types/user";
 
 interface CensusGroupModalProps {
   open: boolean;
-  onClose: (selectedVariables: Record<string, string>) => void;
-  groupCode: string;
+  onClose: (selectedVariables: CensusFields) => void;
   variablesData: CensusVariablesDataType;
+  groupCode?: string;
 }
 
 const columns: GridColDef[] = [
@@ -29,7 +30,6 @@ interface CensusVariablesCodeRow {
 const CensusGroupModal: React.FC<CensusGroupModalProps> = ({
   open,
   onClose,
-  groupCode,
   variablesData,
 }) => {
   const modalRef = React.useRef<HTMLElement>(null);
@@ -49,14 +49,10 @@ const CensusGroupModal: React.FC<CensusGroupModalProps> = ({
           [censusCode, codeDescription],
           index
         ) => {
-          if (censusCode === "ucgid" || !censusCode.startsWith(groupCode)) {
-            return acc;
-          }
-          const cleanedCodeDescription = codeDescription.replace(/!!/g, " ");
           acc.push({
             id: index,
             censusCode,
-            codeDescription: cleanedCodeDescription,
+            codeDescription,
           });
           return acc;
         },
