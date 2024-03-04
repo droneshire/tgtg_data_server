@@ -1,11 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 
 import {
   Box,
   Button,
   CircularProgress,
-  MenuItem,
-  Select,
   SelectChangeEvent,
   Typography,
   Dialog,
@@ -14,7 +12,14 @@ import {
   DialogActions,
   TextField,
 } from "@mui/material";
-import { DataGrid, GridColDef, GridRowSelectionModel } from "@mui/x-data-grid";
+import {
+  DataGrid,
+  GridCallbackDetails,
+  GridCellParams,
+  GridColDef,
+  GridRowSelectionModel,
+  MuiEvent,
+} from "@mui/x-data-grid";
 import USCensusAPI, {
   CensusGroupDataType,
   CensusVariablesDataType,
@@ -72,7 +77,9 @@ const variablesColumns: GridColDef[] = [
 
 const CensusInformation: React.FC<CensusInformationProps> = (props) => {
   const census = useMemo(() => new USCensusAPI(), []);
+  const lastClickWasOnCheckbox = useRef(false);
 
+  const [modalSubmitted, setModalSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
@@ -216,6 +223,10 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     setCensusCodeColumns(groupColumns);
   }, [censusGroupInfo]);
 
+  useEffect(() => {
+    setFilteredCensusCodeRows(censusCodeRows);
+  }, [censusCodeRows]);
+
   const censusVariablesByGroup = useMemo(() => {
     const getCensusVariablesByGroup = (groupCode: string) => {
       const filteredInfo: CensusVariablesDataType = new Map();
@@ -239,6 +250,10 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
   const handleRowSelectionModelChange = (
     newSelectionModel: GridRowSelectionModel
   ) => {
+    if (!lastClickWasOnCheckbox.current) {
+      return;
+    }
+
     const added = newSelectionModel.filter(
       (id) => !selectionModel.includes(id)
     );
@@ -290,10 +305,39 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     setSelectedCensusCodes({ ...newSelectedCensusCodes });
   };
 
+  const handleCellClick = (
+    params: GridCellParams,
+    event: MuiEvent,
+    details: GridCallbackDetails
+  ) => {
+    // Check if the click was on the checkbox
+    const isCheckboxClick = params.field === "__check__";
+    lastClickWasOnCheckbox.current = isCheckboxClick;
+
+    if (!isCheckboxClick) {
+      setIsRowClicked(true);
+    }
+  };
+
+  const updateSelectedCensusCodesAfterChipChanges = (
+    newSelectedCensusCodes: CensusFields
+  ) => {
+    setSelectedCensusCodes(newSelectedCensusCodes);
+    console.log("Selected census codes updated", newSelectedCensusCodes);
+    setSelectionModel(
+      censusCodeRows
+        .filter((row) =>
+          Object.keys(newSelectedCensusCodes).includes(row.censusCode)
+        )
+        .map((row) => row.id)
+    );
+  };
+
   const handleSearchTypeChange = (event: SelectChangeEvent<string>) => {
     const searchType = getSearchTypeFromText(event.target.value);
     if (searchType) {
       setSearchType(searchType);
+      console.log("Search type changed to", searchType);
     } else {
       console.error("Invalid search type");
       setSearchType(SearchType.GROUP);
@@ -310,17 +354,11 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
       sourcePath: ["acs", "acs5"].join("/"),
       fields: selectedCensusCodes,
     });
-    console.log("Updating");
-    console.log(selectedCensusCodes);
     setIsUpdating(true);
     setTimeout(() => {
       setIsUpdating(false);
     }, 10000);
   };
-
-  useEffect(() => {
-    setFilteredCensusCodeRows(censusCodeRows);
-  }, [censusCodeRows]);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const searchValue = event.target.value;
@@ -341,7 +379,15 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
 
   const handleModalClosed = (selectedVariables: CensusFields) => {
     setIsRowClicked(false);
+    if (modalSubmitted) {
+      setModalSubmitted(false);
+    }
+  };
+
+  const handleModalSubmit = (selectedVariables: CensusFields) => {
     setSelectedCensusCodes({ ...selectedCensusCodes, ...selectedVariables });
+    setModalSubmitted(true);
+    setIsRowClicked(false);
   };
 
   return (
@@ -361,7 +407,7 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
           </div>
         </Box>
       ) : (
-        <>
+        <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
           <TextField
             id="search"
             label="Search"
@@ -382,12 +428,14 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
             }}
             pageSizeOptions={[10, 50, 100]}
             checkboxSelection
+            onCellClick={handleCellClick}
             rowSelectionModel={selectionModel}
             onRowSelectionModelChange={handleRowSelectionModelChange}
           />
           <CensusGroupModal
             open={isRowClicked}
             onClose={handleModalClosed}
+            onSave={handleModalSubmit}
             groupCode={selectedGroupCode}
             variablesData={censusVariablesByGroup(selectedGroupCode)}
           />
@@ -403,7 +451,7 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
           </Button>
           <CensusCodeChips
             data={selectedCensusCodes}
-            onChange={setSelectedCensusCodes}
+            onChange={updateSelectedCensusCodesAfterChipChanges}
           />
           <Dialog open={isDialogOpen} onClose={handleDialogClose}>
             <DialogTitle>Warning</DialogTitle>
@@ -414,7 +462,7 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
               <Button onClick={handleDialogClose}>OK</Button>
             </DialogActions>
           </Dialog>
-        </>
+        </Box>
       )}
     </>
   );

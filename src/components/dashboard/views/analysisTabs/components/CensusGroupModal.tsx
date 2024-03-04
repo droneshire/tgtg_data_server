@@ -8,6 +8,7 @@ import { CensusFields } from "types/user";
 interface CensusGroupModalProps {
   open: boolean;
   onClose: (selectedVariables: CensusFields) => void;
+  onSave: (selectedVariables: CensusFields) => void;
   variablesData: CensusVariablesDataType;
   groupCode?: string;
 }
@@ -30,6 +31,7 @@ interface CensusVariablesCodeRow {
 const CensusGroupModal: React.FC<CensusGroupModalProps> = ({
   open,
   onClose,
+  onSave,
   variablesData,
 }) => {
   const modalRef = React.useRef<HTMLElement>(null);
@@ -39,9 +41,6 @@ const CensusGroupModal: React.FC<CensusGroupModalProps> = ({
   );
 
   useEffect(() => {
-    if (open) {
-      modalRef.current?.focus();
-    }
     const rows: CensusVariablesCodeRow[] = Array.from(variablesData)
       .reduce(
         (
@@ -68,7 +67,7 @@ const CensusGroupModal: React.FC<CensusGroupModalProps> = ({
       (acc, row) => ({ ...acc, [row.censusCode]: row.codeDescription }),
       {}
     );
-    onClose(selectedRowData);
+    onSave(selectedRowData);
   };
 
   const handleSelectionChange = (selectedRows: GridRowSelectionModel) => {
