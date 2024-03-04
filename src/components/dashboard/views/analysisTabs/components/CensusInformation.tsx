@@ -184,6 +184,11 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
       return;
     }
 
+    // we offset the id by the number of groups so that
+    // the ids don't overlap between the groups and variables
+    // and selections can be remembered between the two
+    const idOffset = censusGroupInfo.size;
+
     const rows: CensusVariablesCodeRow[] = Array.from(censusVariablesInfo)
       .reduce(
         (
@@ -196,7 +201,7 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
           }
           const cleanedCodeDescription = codeDescription.replace(/!!/g, " ");
           acc.push({
-            id: index,
+            id: index + idOffset,
             censusCode,
             codeDescription: cleanedCodeDescription,
           });
@@ -379,7 +384,9 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
       sourcePath: ["acs", "acs5"].join("/"),
       fields: selectedCensusCodes,
     });
+    setSelectionModel([]);
     setIsUpdating(true);
+    setSelectedGroupCode("");
     setTimeout(() => {
       setIsUpdating(false);
     }, 10000);
