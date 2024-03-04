@@ -1,5 +1,6 @@
 import { Box, MenuItem, Select, SelectChangeEvent } from "@mui/material";
 import React, { useState } from "react";
+import { validCensusYears } from "utils/us_census";
 
 type CensusCodesInputsProps = {
   onYearSelect: (event: SelectChangeEvent<string>) => void;
@@ -11,10 +12,6 @@ export enum SearchType {
   GROUP = "By Group",
   VARIABLE = "By Variable",
 }
-
-const validCensusYears = [
-  2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2020, 2022,
-];
 
 const CensusCodesInputs: React.FC<CensusCodesInputsProps> = ({
   onYearSelect,
