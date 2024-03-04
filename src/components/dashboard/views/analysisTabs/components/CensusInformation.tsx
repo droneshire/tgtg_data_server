@@ -19,11 +19,12 @@ import USCensusAPI, {
   CensusGroupDataType,
   CensusVariablesDataType,
 } from "utils/us_census";
-import { CensusDetails, ClientConfig } from "types/user";
+import { CensusDetails, CensusFields, ClientConfig } from "types/user";
 import { DocumentSnapshot, updateDoc } from "firebase/firestore";
 import { useAsyncAction } from "hooks/async";
 import CensusGroupModal, { CensusVariablesCodeRow } from "./CensusGroupModal";
 import CensusCodesInputs, { SearchType } from "./CensusCodesInputs";
+import CensusCodeChips from "./CensusCodeChips";
 
 interface CensusInformationProps {
   userConfigSnapshot: DocumentSnapshot<ClientConfig>;
@@ -41,7 +42,6 @@ const getSearchTypeFromText = (text: string): SearchType | undefined => {
   const searchType = searchTypes.find((type) => type === text);
   return searchType as SearchType;
 };
-
 
 const MAX_SELECTIONS = 200;
 
@@ -101,9 +101,9 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
   );
 
   // Data to be sent to the server upon clicking the "Add to Analysis" button
-  const [selectedCensusCodes, setSelectedCensusCodes] = useState<
-    Record<string, string>
-  >({});
+  const [selectedCensusCodes, setSelectedCensusCodes] = useState<CensusFields>(
+    {}
+  );
 
   const memoizedSearchYear = useMemo(() => searchYear, [searchYear]);
   const memoizedSearchType = useMemo(() => searchType, [searchType]);
@@ -216,37 +216,78 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     setCensusCodeColumns(groupColumns);
   }, [censusGroupInfo]);
 
+  const censusVariablesByGroup = useMemo(() => {
+    const getCensusVariablesByGroup = (groupCode: string) => {
+      const filteredInfo: CensusVariablesDataType = new Map();
+      for (const [censusCode, codeDescription] of Array.from(
+        censusVariablesInfo
+      )) {
+        if (censusCode.startsWith(groupCode) && censusCode !== "ucgid") {
+          filteredInfo.set(censusCode, codeDescription);
+        }
+      }
+      return filteredInfo;
+    };
+
+    return getCensusVariablesByGroup;
+  }, [censusVariablesInfo]);
+
   const handleDialogClose = () => {
     setIsDialogOpen(false);
   };
 
-  const handleRowClick = (params: any, event: React.MouseEvent) => {
-    if (params.field === "__check__") {
-      if (selectionModel.length >= MAX_SELECTIONS) {
-        setIsDialogOpen(true);
-        return;
-      }
-      const selectionExists = selectionModel.includes(params.id);
-      const newSelectionModel = selectionExists
-        ? selectionModel.filter((id) => id !== params.id) // Unselect
-        : [...selectionModel, params.id]; // Select
+  const handleRowSelectionModelChange = (
+    newSelectionModel: GridRowSelectionModel
+  ) => {
+    const added = newSelectionModel.filter(
+      (id) => !selectionModel.includes(id)
+    );
+    const removed = selectionModel.filter(
+      (id) => !newSelectionModel.includes(id)
+    );
 
-      setSelectionModel(newSelectionModel);
-    } else if (memoizedSearchType === SearchType.GROUP) {
-      setIsRowClicked(true);
-      setSelectedGroupCode(params.row.censusCode);
-    } else if (memoizedSearchType === SearchType.VARIABLE) {
-      const newSelectedCensusCodes = {
-        [params.row.censusCode]: params.row.codeDescription,
-      };
-      setSelectedCensusCodes({
-        ...selectedCensusCodes,
-        ...newSelectedCensusCodes,
-      });
+    if (newSelectionModel.length > MAX_SELECTIONS) {
+      setIsDialogOpen(true);
+      return;
     }
 
-    // Prevent row selection when clicking on other cells
-    event.stopPropagation();
+    const newSelectedCensusCodes = { ...selectedCensusCodes };
+
+    // Add variables for newly selected groups
+    added.forEach((id) => {
+      const row = censusCodeRows.find((row) => row.id === id);
+      if (row) {
+        let variables;
+        if (memoizedSearchType === SearchType.GROUP) {
+          variables = censusVariablesByGroup(row.censusCode);
+        } else {
+          variables = new Map([[row.censusCode, row.codeDescription]]);
+        }
+        variables.forEach((codeDescription, censusCode) => {
+          newSelectedCensusCodes[censusCode] = codeDescription;
+        });
+      }
+    });
+
+    // Remove variables for deselected groups
+    removed.forEach((id) => {
+      const row = censusCodeRows.find((row) => row.id === id);
+      if (row) {
+        let variables;
+        if (memoizedSearchType === SearchType.GROUP) {
+          variables = censusVariablesByGroup(row.censusCode);
+        } else {
+          variables = new Map([[row.censusCode, row.codeDescription]]);
+        }
+        variables.forEach((codeDescription, censusCode) => {
+          delete newSelectedCensusCodes[censusCode];
+        });
+      }
+    });
+
+    console.log(newSelectedCensusCodes);
+    setSelectionModel(newSelectionModel);
+    setSelectedCensusCodes({ ...newSelectedCensusCodes });
   };
 
   const handleSearchTypeChange = (event: SelectChangeEvent<string>) => {
@@ -298,7 +339,7 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     setFilteredCensusCodeRows(filteredRows);
   };
 
-  const handleModalClosed = (selectedVariables: Record<string, string>) => {
+  const handleModalClosed = (selectedVariables: CensusFields) => {
     setIsRowClicked(false);
     setSelectedCensusCodes({ ...selectedCensusCodes, ...selectedVariables });
   };
@@ -341,16 +382,14 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
             }}
             pageSizeOptions={[10, 50, 100]}
             checkboxSelection
-            onRowSelectionModelChange={(newModel) =>
-              setSelectionModel(newModel)
-            }
-            onCellClick={handleRowClick}
+            rowSelectionModel={selectionModel}
+            onRowSelectionModelChange={handleRowSelectionModelChange}
           />
           <CensusGroupModal
             open={isRowClicked}
             onClose={handleModalClosed}
             groupCode={selectedGroupCode}
-            variablesData={censusVariablesInfo}
+            variablesData={censusVariablesByGroup(selectedGroupCode)}
           />
           <Button
             variant="contained"
@@ -362,6 +401,10 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
           >
             Add to Analysis
           </Button>
+          <CensusCodeChips
+            data={selectedCensusCodes}
+            onChange={setSelectedCensusCodes}
+          />
           <Dialog open={isDialogOpen} onClose={handleDialogClose}>
             <DialogTitle>Warning</DialogTitle>
             <DialogContent>
