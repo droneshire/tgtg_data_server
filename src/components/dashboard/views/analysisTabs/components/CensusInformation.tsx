@@ -251,50 +251,15 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     setFilteredCensusCodeRows(censusCodeRows);
   }, [censusCodeRows]);
 
-  // This is a memoized function that returns the census variables for a given group
-  // which is simply based on the prefix of the census code matching the group code
-  const censusVariablesByGroup = useMemo(() => {
-    const getCensusVariablesByGroup = (groupCode: string) => {
-      const filteredInfo: CensusVariablesDataType = new Map();
-      for (const [censusCode, codeDescription] of Array.from(
-        censusVariablesInfo
-      )) {
-        const prefix = censusCode.split("_")[0];
-        if (prefix === groupCode && censusCode !== "ucgid") {
-          filteredInfo.set(censusCode, codeDescription);
-        }
-      }
-      return filteredInfo;
-    };
-
-    return getCensusVariablesByGroup;
-  }, [censusVariablesInfo]);
-
-  const handleDialogClose = () => {
-    setIsDialogOpen(false);
-  };
-
-  // Handle the selection/deletion of items from the DataGrid
-  // This handles complex selections and deselections, such as when
-  // a group is selected and all of its variables are added to the selection
-  const handleRowSelectionModelChange = (
+  const addAndRemoveSelectedCensusCodes = (
     newSelectionModel: GridRowSelectionModel
   ) => {
-    if (!lastClickWasOnCheckbox.current) {
-      return;
-    }
-
     const added = newSelectionModel.filter(
       (id) => !selectionModel.includes(id)
     );
     const removed = selectionModel.filter(
       (id) => !newSelectionModel.includes(id)
     );
-
-    if (newSelectionModel.length > MAX_SELECTIONS) {
-      setIsDialogOpen(true);
-      return;
-    }
 
     const newSelectedCensusCodes = { ...selectedCensusCodes };
 
@@ -330,8 +295,52 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
       }
     });
 
-    setSelectionModel(newSelectionModel);
     setSelectedCensusCodes({ ...newSelectedCensusCodes });
+  };
+  
+  // This is a memoized function that returns the census variables for a given group
+  // which is simply based on the prefix of the census code matching the group code
+  const censusVariablesByGroup = useMemo(() => {
+    const getCensusVariablesByGroup = (groupCode: string) => {
+      const filteredInfo: CensusVariablesDataType = new Map();
+      for (const [censusCode, codeDescription] of Array.from(
+        censusVariablesInfo
+      )) {
+        const prefix = censusCode.split("_")[0];
+        if (prefix === groupCode && censusCode !== "ucgid") {
+          filteredInfo.set(censusCode, codeDescription);
+        }
+      }
+      return filteredInfo;
+    };
+
+    return getCensusVariablesByGroup;
+  }, [censusVariablesInfo]);
+
+  const handleDialogClose = () => {
+    setIsDialogOpen(false);
+  };
+
+  // Handle the selection/deletion of items from the DataGrid
+  // This handles complex selections and deselections, such as when
+  // a group is selected and all of its variables are added to the selection
+  const handleRowSelectionModelChange = (
+    newSelectionModel: GridRowSelectionModel
+  ) => {
+    if (
+      !lastClickWasOnCheckbox.current &&
+      memoizedSearchType === SearchType.GROUP
+    ) {
+      return;
+    }
+
+    if (newSelectionModel.length > MAX_SELECTIONS) {
+      setIsDialogOpen(true);
+      return;
+    }
+
+    addAndRemoveSelectedCensusCodes(newSelectionModel);
+    setSelectionModel(newSelectionModel);
   };
 
   // Handle when the DataGrid row gets clicked or the checkbox gets clicked
@@ -518,6 +527,7 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
             onSave={handleModalSubmit}
             groupCode={selectedGroupCode}
             variablesData={censusVariablesByGroup(selectedGroupCode)}
+            initSelectedVariables={selectedCensusCodes}
           />
           <Button
             variant="contained"

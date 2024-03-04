@@ -10,6 +10,7 @@ interface CensusGroupModalProps {
   onClose: (selectedVariables: CensusFields) => void;
   onSave: (selectedVariables: CensusFields) => void;
   variablesData: CensusVariablesDataType;
+  initSelectedVariables?: CensusFields;
   groupCode?: string;
 }
 
@@ -33,12 +34,22 @@ const CensusGroupModal: React.FC<CensusGroupModalProps> = ({
   onClose,
   onSave,
   variablesData,
+  initSelectedVariables,
 }) => {
   const modalRef = React.useRef<HTMLElement>(null);
   const [rows, setRows] = React.useState<CensusVariablesCodeRow[]>([]);
   const [selectedRows, setSelectedRows] = React.useState<GridRowSelectionModel>(
     []
   );
+
+  useEffect(() => {
+    if (initSelectedVariables) {
+      const selectedRows = rows.filter((row) =>
+        Object.keys(initSelectedVariables).includes(row.censusCode)
+      );
+      setSelectedRows(selectedRows.map((row) => row.id));
+    }
+  }, [initSelectedVariables, rows]);
 
   useEffect(() => {
     const rows: CensusVariablesCodeRow[] = Array.from(variablesData)
@@ -106,6 +117,7 @@ const CensusGroupModal: React.FC<CensusGroupModalProps> = ({
           }}
           pageSizeOptions={[5, 10, 50, 100]}
           checkboxSelection
+          rowSelectionModel={selectedRows}
           onRowSelectionModelChange={handleSelectionChange}
         />
         <Button
