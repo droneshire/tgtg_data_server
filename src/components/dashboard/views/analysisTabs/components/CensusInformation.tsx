@@ -17,6 +17,7 @@ import {
   GridCallbackDetails,
   GridCellParams,
   GridColDef,
+  GridRowId,
   GridRowSelectionModel,
   MuiEvent,
 } from "@mui/x-data-grid";
@@ -297,7 +298,7 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
 
     setSelectedCensusCodes({ ...newSelectedCensusCodes });
   };
-  
+
   // This is a memoized function that returns the census variables for a given group
   // which is simply based on the prefix of the census code matching the group code
   const censusVariablesByGroup = useMemo(() => {
@@ -370,13 +371,19 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     const newNumCodes = Object.keys(newSelectedCensusCodes).length;
     console.log("Previousy selected codes:", previousNumCodes);
     console.log("Newly selected codes:", newNumCodes);
-    setSelectionModel(
-      censusCodeRows
-        .filter((row) =>
-          Object.keys(newSelectedCensusCodes).includes(row.censusCode)
-        )
-        .map((row) => row.id)
-    );
+    if (searchType === SearchType.GROUP) {
+      censusGroupRows.filter((row) =>
+        Object.keys(newSelectedCensusCodes).includes(row.censusCode)
+      );
+    } else if (searchType === SearchType.VARIABLE) {
+      setSelectionModel(
+        censusCodeRows
+          .filter((row) =>
+            Object.keys(newSelectedCensusCodes).includes(row.censusCode)
+          )
+          .map((row) => row.id)
+      );
+    }
   };
 
   const handleSearchTypeChange = (event: SelectChangeEvent<string>) => {
@@ -474,7 +481,51 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
 
   // Handle the modal submit
   const handleModalSubmit = (selectedVariables: CensusFields) => {
-    setSelectedCensusCodes({ ...selectedCensusCodes, ...selectedVariables });
+    const selectedGroupSelectionId = censusGroupRows.find(
+      (row) => row.censusCode === selectedGroupCode
+    )?.id;
+
+    console.log("Selected variables:", selectedVariables);
+    console.log("Selected group selection id:", selectedGroupSelectionId);
+    console.log("Selected group code:", selectedGroupCode);
+
+    let newSelectionModel: Set<GridRowId> = new Set(selectionModel);
+
+    if (selectedGroupSelectionId) {
+      const selectedVariablesSize = Object.keys(selectedVariables).length;
+
+      if (selectedVariablesSize > 0) {
+        console.log("Adding group selection id to selection model");
+        newSelectionModel.add(selectedGroupSelectionId);
+      } else {
+        console.log("Deleting group selection id from selection model");
+        newSelectionModel.delete(selectedGroupSelectionId);
+      }
+    }
+
+    const removed = Object.keys(selectedCensusCodes).filter(
+      (code) => !Object.keys(selectedVariables).includes(code)
+    );
+    const added = Object.keys(selectedVariables).filter(
+      (code) => !Object.keys(selectedCensusCodes).includes(code)
+    );
+
+    console.log("Added:", added);
+    console.log("Removed:", removed);
+
+    let newSelectedCensusCodes = { ...selectedCensusCodes };
+
+    added.forEach((code) => {
+      newSelectedCensusCodes[code] = selectedVariables[code];
+    });
+
+    removed.forEach((code) => {
+      delete newSelectedCensusCodes[code];
+    });
+
+    setSelectedCensusCodes(newSelectedCensusCodes);
+
+    setSelectionModel(Array.from(newSelectionModel));
     setModalSubmitted(true);
     setIsRowClicked(false);
   };
