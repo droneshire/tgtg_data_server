@@ -132,6 +132,14 @@ const FirestoreFileSelect: React.FC<FirestoreFileSelectProps> = (props) => {
         const fileNames = result.items.map((itemRef) => {
           const fileName = itemRef.name;
           const labelName = FirestoreNameToLabel(fileName);
+
+          if (
+            !labelName.includes("search_context") &&
+            !labelName.includes(".csv")
+          ) {
+            return null;
+          }
+
           if (fileName) {
             return {
               fileString: labelName,
