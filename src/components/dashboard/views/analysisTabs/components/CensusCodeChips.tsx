@@ -33,11 +33,11 @@ const CensusCodeChips: React.FC<CensusCodeChipsProps> = ({
     const updatedData: CensusFields = {};
 
     Object.entries(data).forEach((item: [string, string]) => {
-        const [code, value] = item;
-        const group = code.split("_")[0];
-        if (updatedChips.includes(group)) {
-            updatedData[code] = value;
-        }
+      const [code, value] = item;
+      const group = code.split("_")[0];
+      if (updatedChips.includes(group)) {
+        updatedData[code] = value;
+      }
     });
 
     onChange(updatedData);

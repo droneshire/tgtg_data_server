@@ -137,6 +137,35 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     }
   );
 
+  useEffect(() => {
+    if (searchType === SearchType.GROUP) {
+      // Assuming censusGroupRows and censusGroupColumns are ready to be used
+      setCensusCodeRows(censusGroupRows);
+      setCensusCodeColumns(censusGroupColumns);
+
+      updateGroupSelectionsModel(selectedCensusCodes);
+    } else if (searchType === SearchType.VARIABLE) {
+      setCensusCodeRows(censusVariablesRows);
+      setCensusCodeColumns(censusVariablesColumns);
+
+      // simply select all the selected variables if the search type is changed to variable
+      setSelectionModel(
+        censusVariablesRows
+          .filter((row) =>
+            Object.keys(selectedCensusCodes).includes(row.censusCode)
+          )
+          .map((row) => row.id)
+      );
+    }
+    // This will trigger the effect that sets filteredCensusCodeRows
+  }, [
+    censusGroupRows,
+    censusGroupColumns,
+    censusVariablesRows,
+    censusVariablesColumns,
+    searchType,
+  ]);
+
   // Load/cache the data from the US Census API
   useEffect(() => {
     const loadCensusVariablesData = async () => {
@@ -239,13 +268,6 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
       .sort((a, b) => a.censusCode.localeCompare(b.censusCode));
     setCensusGroupRows(rows);
     setCensusGroupColumns(groupColumns);
-    // this is a bit of a hack to display the group data the first time
-    // the component is rendered before the type select handle is called
-    // since that manages all of the code rows and code columns
-    if (memoizedSearchType === SearchType.GROUP) {
-      setCensusCodeRows(censusGroupRows);
-      setCensusCodeColumns(censusGroupColumns);
-    }
   }, [censusGroupInfo]);
 
   useEffect(() => {
@@ -402,25 +424,6 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     const searchType = getSearchTypeFromText(event.target.value);
     if (searchType) {
       setSearchType(searchType);
-
-      if (searchType === SearchType.VARIABLE) {
-        setCensusCodeRows(censusVariablesRows);
-        setCensusCodeColumns(censusVariablesColumns);
-
-        // simply select all the selected variables if the search type is changed to variable
-        setSelectionModel(
-          censusVariablesRows
-            .filter((row) =>
-              Object.keys(selectedCensusCodes).includes(row.censusCode)
-            )
-            .map((row) => row.id)
-        );
-      } else if (searchType === SearchType.GROUP) {
-        setCensusCodeRows(censusGroupRows);
-        setCensusCodeColumns(censusGroupColumns);
-
-        updateGroupSelectionsModel(selectedCensusCodes);
-      }
     } else {
       console.error("Invalid search type");
       setSearchType(SearchType.GROUP);
@@ -494,8 +497,13 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
       }
     }
 
+    const allCodesForSelectedGroup = Array.from(
+      censusVariablesByGroup(selectedGroupCode).keys()
+    );
     const removed = Object.keys(selectedCensusCodes).filter(
-      (code) => !Object.keys(selectedVariables).includes(code)
+      (code) =>
+        !Object.keys(selectedVariables).includes(code) &&
+        allCodesForSelectedGroup.includes(code)
     );
     const added = Object.keys(selectedVariables).filter(
       (code) => !Object.keys(selectedCensusCodes).includes(code)
