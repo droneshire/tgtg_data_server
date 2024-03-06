@@ -134,7 +134,7 @@ const FirestoreFileSelect: React.FC<FirestoreFileSelectProps> = (props) => {
           const labelName = FirestoreNameToLabel(fileName);
 
           if (
-            !labelName.includes("tgtg_search_") &&
+            !labelName.includes("tgtg_search_") ||
             !labelName.includes(".csv")
           ) {
             return null;
