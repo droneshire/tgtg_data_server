@@ -369,12 +369,8 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     setSelectedCensusCodes(newSelectedCensusCodes);
     const previousNumCodes = Object.keys(selectedCensusCodes).length;
     const newNumCodes = Object.keys(newSelectedCensusCodes).length;
-    console.log("Previousy selected codes:", previousNumCodes);
-    console.log("Newly selected codes:", newNumCodes);
     if (searchType === SearchType.GROUP) {
-      censusGroupRows.filter((row) =>
-        Object.keys(newSelectedCensusCodes).includes(row.censusCode)
-      );
+      updateGroupSelectionsModel(newSelectedCensusCodes);
     } else if (searchType === SearchType.VARIABLE) {
       setSelectionModel(
         censusCodeRows
@@ -384,6 +380,22 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
           .map((row) => row.id)
       );
     }
+  };
+
+  const updateGroupSelectionsModel = (codes: CensusFields) => {
+    const newSelectionModel: GridRowSelectionModel = [];
+
+    // select all the groups that correspond to the selected variables
+    Object.entries(codes).forEach((item: [string, string]) => {
+      const [code, value] = item;
+      const group = code.split("_")[0];
+      newSelectionModel.push(
+        ...censusGroupRows
+          .filter((row) => row.censusCode === group)
+          .map((row) => row.id)
+      );
+    });
+    setSelectionModel(newSelectionModel);
   };
 
   const handleSearchTypeChange = (event: SelectChangeEvent<string>) => {
@@ -407,23 +419,8 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
         setCensusCodeRows(censusGroupRows);
         setCensusCodeColumns(censusGroupColumns);
 
-        const newSelectionModel: GridRowSelectionModel = [];
-
-        // select all the groups that correspond to the selected variables
-        Object.entries(selectedCensusCodes).forEach(
-          (item: [string, string]) => {
-            const [code, value] = item;
-            const group = code.split("_")[0];
-            newSelectionModel.push(
-              ...censusGroupRows
-                .filter((row) => row.censusCode === group)
-                .map((row) => row.id)
-            );
-          }
-        );
-        setSelectionModel(newSelectionModel);
+        updateGroupSelectionsModel(selectedCensusCodes);
       }
-      console.log("Search type changed to", searchType);
     } else {
       console.error("Invalid search type");
       setSearchType(SearchType.GROUP);
@@ -485,20 +482,14 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
       (row) => row.censusCode === selectedGroupCode
     )?.id;
 
-    console.log("Selected variables:", selectedVariables);
-    console.log("Selected group selection id:", selectedGroupSelectionId);
-    console.log("Selected group code:", selectedGroupCode);
-
     let newSelectionModel: Set<GridRowId> = new Set(selectionModel);
 
     if (selectedGroupSelectionId) {
       const selectedVariablesSize = Object.keys(selectedVariables).length;
 
       if (selectedVariablesSize > 0) {
-        console.log("Adding group selection id to selection model");
         newSelectionModel.add(selectedGroupSelectionId);
       } else {
-        console.log("Deleting group selection id from selection model");
         newSelectionModel.delete(selectedGroupSelectionId);
       }
     }
@@ -509,9 +500,6 @@ const CensusInformation: React.FC<CensusInformationProps> = (props) => {
     const added = Object.keys(selectedVariables).filter(
       (code) => !Object.keys(selectedCensusCodes).includes(code)
     );
-
-    console.log("Added:", added);
-    console.log("Removed:", removed);
 
     let newSelectedCensusCodes = { ...selectedCensusCodes };
 
