@@ -28,7 +28,7 @@ const ResearchParameterInputs: React.FC<ResearchParameterInputsProps> = (
 ) => {
   const [openDialog, setOpenDialog] = React.useState(false);
 
-  const [costPerSearch, setCostPerSearch] = React.useState(0.04);
+  const [costPerSearch, setCostPerSearch] = React.useState(0.1);
   const [searchRadiusMiles, setSearchRadiusMiles] = React.useState(20.0);
   const [cityName, setCityName] = React.useState("");
   const [searchBudget, setSearchBudget] = React.useState(700.0);
