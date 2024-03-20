@@ -2,6 +2,13 @@ import { Coordinates, Grid, getGridCoordinates } from "utils/demographics";
 import { METERS_PER_KILOMETER, METERS_PER_MILE } from "./constants";
 import GooglePlacesAPI from "utils/google_places";
 
+const DefaultPrompts = [
+  "All restaurants", // This first one in the list is the default used for optimization purposes
+  "All bakeries",
+  "All cafes",
+  "All coffee shops",
+];
+
 interface CostResults {
   numberOfSquares: number;
   totalCost: number;
@@ -78,7 +85,7 @@ const findMaxGridSearchResultsWithinBudget = async (
     await googlePlacesApi.findMaximumViewpointWidth(
       centerLat,
       centerLon,
-      "All Restaurants"
+      DefaultPrompts[0]
     );
 
   console.log(`Max viewpoint width: ${maxGridResolutionWidthMeters}m`);
@@ -98,7 +105,7 @@ const findMaxGridSearchResultsWithinBudget = async (
   while (totalCost > searchBudget && radiusMeters > METERS_PER_KILOMETER) {
     ({ numberOfSquares, totalCost } = calculateCostFromResults(
       maxGridResolutionWidthMeters,
-      costPerSearch,
+      costPerSearch * DefaultPrompts.length,
       radiusMeters,
       false
     ));
