@@ -1,13 +1,10 @@
 import { Coordinates, Grid, getGridCoordinates } from "utils/demographics";
-import { METERS_PER_KILOMETER, METERS_PER_MILE } from "./constants";
+import {
+  DEFAULT_PROMPTS,
+  METERS_PER_KILOMETER,
+  METERS_PER_MILE,
+} from "./constants";
 import GooglePlacesAPI from "utils/google_places";
-
-const DefaultPrompts = [
-  "All restaurants", // This first one in the list is the default used for optimization purposes
-  "All bakeries",
-  "All cafes",
-  "All coffee shops",
-];
 
 interface CostResults {
   numberOfSquares: number;
@@ -105,7 +102,7 @@ const findMaxGridSearchResultsWithinBudget = async (
   while (totalCost > searchBudget && radiusMeters > METERS_PER_KILOMETER) {
     ({ numberOfSquares, totalCost } = calculateCostFromResults(
       maxGridResolutionWidthMeters,
-      costPerSearch * DefaultPrompts.length,
+      costPerSearch * DEFAULT_PROMPTS.length,
       radiusMeters,
       false
     ));

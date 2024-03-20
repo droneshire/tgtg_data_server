@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import React from "react";
 import { CostResults } from "../logic/places_coverage";
+import { DEFAULT_PROMPTS } from "../logic/constants";
 
 interface ResearchCostTableProps {
   costResults: CostResults;
@@ -116,6 +117,17 @@ const ResearchCostTable: React.FC<ResearchCostTableProps> = (props) => {
                   costResults.searchRadiusMiles.toFixed(2)
                 ).toLocaleString()}
               </TableCell>
+            </TableRow>
+            <TableRow
+              sx={{
+                marginLeft: "1rem",
+                "& > *": {
+                  textAlign: "left",
+                },
+              }}
+            >
+              <TableCell>Search Prompts (run on each grid)</TableCell>
+              <TableCell>{DEFAULT_PROMPTS.join(", ")}</TableCell>
             </TableRow>
           </TableBody>
         </Table>

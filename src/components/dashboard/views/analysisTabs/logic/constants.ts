@@ -51,6 +51,13 @@ const TYPES: string[] = [
 
 const ADVANCED_PROMPT: string = `All ${TYPES.join(", ")}`;
 
+const DEFAULT_PROMPTS = [
+  "All restaurants", // This first one in the list is the default used for optimization purposes
+  "All bakeries",
+  "All cafes",
+  "All coffee shops",
+];
+
 const METERS_PER_MILE = 1609.34;
 const METERS_PER_KILOMETER = 1000.0;
 
@@ -58,6 +65,7 @@ export {
   LOCATIONS,
   ADVANCED_FIELDS,
   ADVANCED_PROMPT,
+  DEFAULT_PROMPTS,
   METERS_PER_KILOMETER,
   METERS_PER_MILE,
 };
