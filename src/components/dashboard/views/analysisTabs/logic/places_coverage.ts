@@ -82,7 +82,7 @@ const findMaxGridSearchResultsWithinBudget = async (
     await googlePlacesApi.findMaximumViewpointWidth(
       centerLat,
       centerLon,
-      DefaultPrompts[0]
+      DEFAULT_PROMPTS[0]
     );
 
   console.log(`Max viewpoint width: ${maxGridResolutionWidthMeters}m`);
