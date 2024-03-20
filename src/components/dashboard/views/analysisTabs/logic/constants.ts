@@ -54,7 +54,7 @@ const ADVANCED_PROMPT: string = `All ${TYPES.join(", ")}`;
 const DEFAULT_PROMPTS = [
   "All restaurants", // This first one in the list is the default used for optimization purposes
   "All bakeries",
-  "All cafes",
+  "All grocery stores",
   "All coffee shops",
 ];
 
