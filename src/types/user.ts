@@ -74,6 +74,7 @@ export interface SearchContext {
   autoUpload: boolean;
   maxCostPerCity: number;
   costPerSquare: number;
+  gridStartIndex: number;
   censusDetails: CensusDetails;
 }
 
@@ -114,6 +115,7 @@ export const DEFAULT_USER_CONFIG: ClientConfig = {
     autoUpload: false,
     maxCostPerCity: 0,
     costPerSquare: 0,
+    gridStartIndex: 0,
     censusDetails: {
       year: 0,
       sourcePath: "",

@@ -124,6 +124,7 @@ const ResearchCoverage: React.FC<ResearchCoverageProps> = ({
       "searchContext.autoUpload": true,
       "searchContext.maxCostPerCity": searchBudget,
       "searchContext.costPerSquare": costPerSearch,
+      "searchContext.gridStartIndex": 0,
     };
     updateDoc(userConfigSnapshot.ref, fieldsToUpdate);
 
